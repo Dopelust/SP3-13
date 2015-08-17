@@ -371,8 +371,11 @@ void MinScene::Update(double dt)
 				if (RemoveBlock(selectedBlock))
 				{
 					ISound * sound = engine->play2D(Block::getSound(selectedBlock->id), false, true);
-					sound->setVolume(0.4f);
-					sound->setIsPaused(false);
+					if (sound)
+					{
+						sound->setVolume(0.4f);
+						sound->setIsPaused(false);
+					}
 				}
 			}
 		}
@@ -468,8 +471,11 @@ void MinScene::Update(double dt)
 				if (playSound)
 				{
 					ISound * sound = engine->play2D(Block::getSound(blockInventory.getBlock().id), false, true);
-					sound->setVolume(0.4f);
-					sound->setIsPaused(false);
+					if (sound)
+					{
+						sound->setVolume(0.4f);
+						sound->setIsPaused(false);
+					}
 				}
 			}
 		}
@@ -553,9 +559,9 @@ bool MinScene::RemoveBlock(Block* block)
 }
 void MinScene::Render()
 {
-	//RenderPassGPass();
-	//RenderBlocks_GPass();
-	//RenderEntities_GPass();
+	RenderPassGPass();
+	RenderBlocks_GPass();
+	RenderEntities_GPass();
 
 	RenderPassMain();
 	Mtx44 projection;

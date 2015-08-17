@@ -189,8 +189,11 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 					if (stepSound)
 					{
 						ISound * sound = engine->play2D(stepSound, false, true);
-						sound->setVolume(0.25f);
-						sound->setIsPaused(false);
+						if (sound)
+						{
+							sound->setVolume(0.25f);
+							sound->setIsPaused(false);
+						}
 					}
 				}
 			}
@@ -203,9 +206,11 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 			soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
 
 			ISound* sound = engine->play2D(soundFileName[rand() % 3], false, true);
-			sound->setVolume(0.75f);
-			sound->setIsPaused(false);
-
+			if (sound)
+			{
+				sound->setVolume(0.75f);
+				sound->setIsPaused(false);
+			}
 			reduceHealth(-initialVel.y/3);
 		}
 	}

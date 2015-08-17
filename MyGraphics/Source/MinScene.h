@@ -57,6 +57,7 @@ private:
 	Block* worldBlockList[worldX][worldY][worldZ];
 	vector<Block*> blockList;
 	vector<Block*> alphaBlockList;
+	vector<vector<Block*>> collisionBlockList;
 	vector<Particle> particleList;
 	void ObtainBlockList();
 	BlockFactory blockInventory;
