@@ -1,0 +1,27 @@
+Min Build 0.1f
+- Player Models
+
+Min Build 0.1e
+- Alpha Blocks
+- Trees
+- Shadows
+
+Min Build 0.1d
+- Block Sounds
+- Updated Inventory to inculde Stairs
+- FPS Optimization
+
+Min Build 0.1c
+- Inventory/Block Selector
+- Stairs
+
+Min Build 0.1b
+- Multitextured blocks(Grass, Wood, TNT)
+- Compass
+- Minor "terrain" generation
+
+Min Build 0.1a
+- 9 Basic Blocks
+- Skybox
+- Full Collision Detection System
+- World Loading/Saving
