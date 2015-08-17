@@ -1,0 +1,58 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+layout(location = 1) in vec3 vertexColor;
+layout(location = 2) in vec3 vertexNormal_modelspace;
+layout(location = 3) in vec2 vertexTexCoord;
+layout (location = 4) in mat4 M;
+layout (location = 8) in vec2 texOffset;
+
+// Output data ; will be interpolated for each fragment.
+out vec3 vertexPosition_cameraspace;
+out vec3 fragmentColor;
+out vec3 vertexNormal_cameraspace;
+out vec2 texCoord;
+
+// Values that stay constant for the whole mesh
+uniform mat4 MV_inverse_transpose;
+uniform bool lightEnabled;
+uniform bool particleTex;
+uniform int texRows;
+uniform mat4 V;
+uniform mat4 P;
+
+void main(){
+
+	mat4 MV = V * M;
+	mat4 MVP = P * V * M;
+
+	// Output position of the vertex, in clip space : MVP * position
+	gl_Position = MVP * vec4(vertexPosition_modelspace, 1);
+	
+	// Vector position, in camera space
+	vertexPosition_cameraspace = ( MV * vec4(vertexPosition_modelspace, 1) ).xyz;
+
+	if(lightEnabled == true)
+	{
+		// Vertex normal, in camera space
+		// Use MV if ModelMatrix does not scale the model ! Use its inverse transpose otherwise.
+		vertexNormal_cameraspace = ( MV * vec4(vertexNormal_modelspace, 0) ).xyz;
+	}
+	// The color of each vertex will be interpolated to produce the color of each fragment
+	fragmentColor = vertexColor;
+	// A simple pass through. The texCoord of each fragment will be interpolated from texCoord of each vertex
+
+		texCoord = vertexTexCoord;
+
+	if (texRows > 0)
+	{
+		if (particleTex)
+			texCoord /= texRows * 4;
+		else
+			texCoord /= texRows;
+
+		texCoord += texOffset;
+	}
+}
+

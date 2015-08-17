@@ -1,0 +1,83 @@
+#version 330 core
+
+// Interpolated values from the vertex shaders
+in vec3 vertexPosition_cameraspace;
+in vec3 fragmentColor;
+in vec3 vertexNormal_cameraspace;
+in vec2 texCoord;
+in vec4 shadowCoord;
+
+// Ouput data
+layout (location = 0) out vec4 position_cameraspace;
+layout (location = 1) out vec4 normal_cameraspace;
+layout (location = 2) out vec4 ambientColor;
+layout (location = 3) out vec4 diffuseColor;
+layout (location = 4) out vec4 specularColor;
+layout (location = 5) out vec4 emissiveColor;
+
+struct Material {
+	vec3 kAmbient;
+	vec3 kDiffuse;
+	vec3 kSpecular;
+	vec3 kEmissive;
+	float kShininess;
+};
+
+// Constant values
+const int MAX_TEXTURES = 8;
+
+// Values that stay constant for the whole mesh.
+uniform bool lightEnabled;
+uniform Material material;
+uniform bool colorTextureEnabled[MAX_TEXTURES];
+uniform sampler2D colorTexture[MAX_TEXTURES];
+uniform sampler2D shadowMap;
+
+//without shadow improvement
+float getShadowEffect()
+{
+	float visibility = 1.0;
+	float bias = 0.005;
+	if(texture2D(shadowMap, shadowCoord.xy).x < shadowCoord.z - bias) {
+		visibility = 0.25;
+	}
+	return visibility;
+}
+
+void main() {
+	int texCount = 0;
+	// Material properties
+	vec4 materialColor = vec4(0, 0, 0, 1);
+		
+	for (int i = 0; i < MAX_TEXTURES; ++i)
+	{
+		if(colorTextureEnabled[i] == true)
+		{
+			materialColor += texture2D( colorTexture[i], texCoord );
+			++texCount;
+		}		
+	}
+	if (texCount > 0)
+		materialColor = materialColor/texCount;
+	else
+		materialColor = vec4( fragmentColor, 1 );
+
+	float visibility = getShadowEffect();
+		
+	// Color output
+	ambientColor = vec4(materialColor.xyz * material.kAmbient, 1);
+	if(lightEnabled == true)
+	{
+		diffuseColor = vec4(materialColor.xyz * material.kDiffuse, 1);
+		specularColor = vec4(material.kSpecular, material.kShininess);
+		emissiveColor = vec4(materialColor.xyz * material.kEmissive, 1);
+	}
+	else
+	{
+		diffuseColor = vec4(0, 0, 0, 1);
+		specularColor = vec4(0, 0, 0, 1);
+		emissiveColor = vec4(0, 0, 0, 1);
+	}
+	position_cameraspace = vec4(vertexPosition_cameraspace, visibility);
+	normal_cameraspace = vec4(normalize(vertexNormal_cameraspace), 1);
+}

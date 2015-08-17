@@ -1,0 +1,93 @@
+#version 330 core
+
+out vec4 fragColor;
+
+struct Light {
+	int type;
+	vec3 position_cameraspace;
+	vec3 color;
+	float power;
+	float kC;
+	float kL;
+	float kQ;
+	vec3 spotDirection;
+	float cosCutoff;
+	float cosInner;
+	float exponent;
+	float radius;
+};
+
+uniform vec2 screenSize;
+uniform sampler2D shadowMap;
+uniform sampler2D positionMap;
+uniform sampler2D normalMap;
+uniform sampler2D ambientMap;
+uniform sampler2D diffuseMap;
+uniform sampler2D specularMap;
+uniform sampler2D emissiveMap;
+uniform Light light;
+
+void main()
+{
+   	vec2 texCoord = gl_FragCoord.xy / screenSize;
+   	vec3 vertexPosition_cameraspace = texture(positionMap, texCoord).xyz;
+   	vec3 vertexNormal_cameraspace = texture(normalMap, texCoord).xyz;
+   	vec3 ambient = texture(ambientMap, texCoord).xyz;
+   	vec3 diffuse = texture(diffuseMap, texCoord).xyz;
+   	vec3 specular = texture(specularMap, texCoord).xyz;
+   	vec3 emissive = texture(emissiveMap, texCoord).xyz;
+   	float shininess = texture(specularMap, texCoord).w;
+	float visibility = texture(positionMap, texCoord).w;
+
+	if(light.type == 1) //directional light
+	{
+		vec3 lightDirection_cameraspace = light.position_cameraspace;
+
+		vec3 eyeDirection_cameraspace = - vertexPosition_cameraspace;
+		vec3 E = normalize( eyeDirection_cameraspace );
+		vec3 N = normalize( vertexNormal_cameraspace );
+		vec3 L = normalize( lightDirection_cameraspace );
+		float cosTheta = clamp( dot( N, L ), 0, 1 );
+		vec3 R = reflect(-L, N);
+		float cosAlpha = clamp( dot( E, R ), 0, 1 );
+
+   		fragColor.xyz =
+			// only directional light add ambient and emissive color
+			ambient + emissive +
+
+			// Diffuse : "color" of the object
+			visibility * diffuse * light.color * light.power * cosTheta +
+				
+			// Specular : reflective highlight, like a mirror
+			visibility * specular * light.color * light.power * pow(cosAlpha, shininess);
+	}
+	else //point light
+	{
+		vec3 lightDirection_cameraspace = light.position_cameraspace - vertexPosition_cameraspace;
+		float distance = length(lightDirection_cameraspace);
+		vec3 eyeDirection_cameraspace = - vertexPosition_cameraspace;
+		vec3 E = normalize( eyeDirection_cameraspace );
+		vec3 N = normalize( vertexNormal_cameraspace );
+		vec3 L = normalize( lightDirection_cameraspace );
+		float cosTheta = clamp( dot( N, L ), 0, 1 );
+		vec3 R = reflect(-L, N);
+		float cosAlpha = clamp( dot( E, R ), 0, 1 );
+		float attenuationFactor = 1;
+		if(distance > light.radius) {
+			attenuationFactor = 0;
+		}
+		else {
+			float val = distance / light.radius - 1.0;
+			attenuationFactor = val * val;
+		}
+   		fragColor.xyz =
+
+			// Diffuse : "color" of the object
+			diffuse * light.color * light.power * cosTheta * attenuationFactor +
+				
+			// Specular : reflective highlight, like a mirror
+			specular * light.color * light.power * pow(cosAlpha, shininess) * attenuationFactor;
+	}
+
+	fragColor.a = 1;
+}

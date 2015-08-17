@@ -1,0 +1,17 @@
+#version 330 core
+
+// Input vertex data, different for all executions of this shader.
+layout(location = 0) in vec3 vertexPosition_modelspace;
+//layout(location = 1) in vec3 vertexColor;
+//layout(location = 2) in vec3 vertexNormal_modelspace;
+
+//out vec3 vertexNormal_cameraspace;
+
+// Values that stay constant for the whole mesh.
+uniform mat4 lightDepthMVP;
+//uniform mat4 lightDepthMV;
+
+void main(){
+	gl_Position = lightDepthMVP * vec4(vertexPosition_modelspace, 1);
+	//vertexNormal_cameraspace = normalize((lightDepthMV * vec4(vertexNormal_modelspace, 1)).xyz);
+}
