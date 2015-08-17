@@ -120,9 +120,13 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 	}
 
 	bool stepped = false;
-	bool shouldClimb = false;
+	int shouldClimb = 0;
+	vector<int> cantClimb;
+	Vector3 failToClimb;
 	float climb = 0.f;
-	bool canClimb = true;
+
+	Vector3 maxPlayer = initialPos + Player.collision.centre + Player.collision.hitbox  * 0.5f;
+	Vector3 minPlayer = initialPos + Player.collision.centre - Player.collision.hitbox * 0.5f;
 
 	count = collidedBlocks.size();
 	for (unsigned i = 0; i < count; ++i)
@@ -130,9 +134,6 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 		Block P(position, collision.centre, collision.hitbox);
 		if (Block::checkCollision(P, collidedBlocks[i]))
 		{
-			Vector3 maxPlayer = initialPos + Player.collision.centre + Player.collision.hitbox  * 0.5f;
-			Vector3 minPlayer = initialPos + Player.collision.centre - Player.collision.hitbox * 0.5f;
-
 			Vector3 maxCube = collidedBlocks[i].getMaxCoord();
 			Vector3 minCube = collidedBlocks[i].getMinCoord();
 
@@ -142,13 +143,14 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				{
 					if (position.y < maxCube.y)
 					{
-						shouldClimb = true;
+						shouldClimb = 1;
 						climb = maxCube.y + eps;
+						failToClimb.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
 					}
 				}
 				else
 				{
-					canClimb = false;
+					cantClimb.push_back(1);
 					velocity.z = 0;
 					position.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
 				}
@@ -159,13 +161,14 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				{
 					if (position.y < maxCube.y)
 					{
-						shouldClimb = true;
+						shouldClimb = 2;
 						climb = maxCube.y + eps;
+						failToClimb.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
 					}
 				}
 				else
 				{
-					canClimb = false;
+					cantClimb.push_back(2);
 					velocity.z = 0;
 					position.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
 				}
@@ -176,13 +179,14 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				{
 					if (position.y < maxCube.y)
 					{
-						shouldClimb = true;
+						shouldClimb = 3;
 						climb = maxCube.y + eps;
+						failToClimb.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
 					}
 				}
 				else
 				{
-					canClimb = false;
+					cantClimb.push_back(3);
 					velocity.x = 0;
 					position.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
 				}
@@ -193,13 +197,14 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				{
 					if (position.y < maxCube.y)
 					{
-						shouldClimb = true;
+						shouldClimb = 4;
 						climb = maxCube.y + eps;
+						failToClimb.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
 					}
 				}
 				else
 				{
-					canClimb = false;
+					cantClimb.push_back(4);
 					velocity.x = 0;
 					position.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
 				}
@@ -234,12 +239,54 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 		}
 	}
 
-	if (canClimb && shouldClimb)
+	bool canClimb = true;
+
+	for (unsigned i = 0; i < cantClimb.size(); ++i)
 	{
+		if (shouldClimb == cantClimb[i])
+			canClimb = false;
+	}
+	if (canClimb)
+	{
+		Block P(Vector3(position.x, climb, position.z), collision.centre, collision.hitbox);
+		Block* blockToClimb = NULL;
+
+		unsigned count = object.size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			if (object[i]->position != shouldClimb)
+			{
+				if (object[i]->type == Block::STAIR)
+				{
+					for (unsigned j = 0; j < object[i]->collisions.size(); ++j)
+					{
+						Block Blk(object[i]->position, object[i]->collisions[j].centre, object[i]->collisions[j].hitbox);
+						Blk.id = object[i]->id;
+
+						if (Block::checkCollision(P, Blk))
+						{
+							if (failToClimb.x != 0)
+								position.x = failToClimb.x;
+							if (failToClimb.z != 0)
+								position.z = failToClimb.z;
+							return;
+						}
+					}
+				}
+				else
+				{
+					if (Block::checkCollision(P, *object[i]))
+					{
+						if (failToClimb.x != 0)
+							position.x = failToClimb.x;
+						if (failToClimb.z != 0)
+							position.z = failToClimb.z;
+						return;
+					}
+				}
+			}
+		}
+
 		position.y = climb;
 	}
-
-	collidedBlocks.clear();
-	penetrationArea.clear();
-
 }

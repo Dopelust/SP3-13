@@ -119,6 +119,16 @@ bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID,
 			delete o;
 			return false;
 		}
+
+		unsigned count = LivingThings.size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			if (Block::checkCollision(*o, Block(LivingThings[i]->position, LivingThings[i]->collision.centre, LivingThings[i]->collision.hitbox)))
+			{
+				delete o;
+				return false;
+			}
+		}
 	}
 
 	if (type == Block::TRANS)
@@ -205,6 +215,17 @@ bool MinScene::FetchStair(Vector3 pos, bool checkForCollision, unsigned blockID,
 			delete o;
 			return false;
 		}
+
+		unsigned count = LivingThings.size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			if (Block::checkCollision(Blk1, Block(LivingThings[i]->position, LivingThings[i]->collision.centre, LivingThings[i]->collision.hitbox)) ||
+				Block::checkCollision(Blk2, Block(LivingThings[i]->position, LivingThings[i]->collision.centre, LivingThings[i]->collision.hitbox)))
+			{
+				delete o;
+				return false;
+			}
+		}
 	}
 
 	blockList.push_back(o);
@@ -247,6 +268,7 @@ void MinScene::ObtainBlockList()
 	unsigned count = LivingThings.size();
 	for (unsigned i = 0; i < count; ++i)
 		LivingThings[i]->collisionBlockList.clear();
+	player.collisionBlockList.clear();
 
 	LivingThings.clear();
 	alphaBlockList.clear();
@@ -295,6 +317,9 @@ void MinScene::ObtainBlockList()
 							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
+
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -320,6 +345,9 @@ void MinScene::ObtainBlockList()
 							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
+
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -345,6 +373,9 @@ void MinScene::ObtainBlockList()
 							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
+
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -359,7 +390,7 @@ void MinScene::Update(double dt)
 	SceneBase::Update(dt);
 	blockInventory.Update();
 
-	if (elapsedTime >= (nextUpdate*0.25f))
+	if (elapsedTime >= (nextUpdate*0.5f))
 	{
 		ObtainBlockList();
 		nextUpdate++;
@@ -551,14 +582,14 @@ void MinScene::Update(double dt)
 
 	static bool bEButtonPressed = false;
 
-	if (!bNButtonPressed && Application::IsKeyPressed('E'))
+	if (!bEButtonPressed && Application::IsKeyPressed('E'))
 	{
 		Save("Save//save1.txt");
-		bNButtonPressed = true;
+		bEButtonPressed = true;
 	}
 	else if (bNButtonPressed && !Application::IsKeyPressed('E'))
-		bNButtonPressed = false;
-
+		bEButtonPressed = false;
+	
 	elapsedTime += dt;
 }
 bool MinScene::RemoveBlock(Block* block)
@@ -885,10 +916,13 @@ void MinScene::RenderScene()
 		{
 			if (blockList[i]->type != Block::STAIR)
 			{
-				modelStack.PushMatrix();
-				blockList[i]->RenderObject(modelStack);
-				MMat.push_back(modelStack.Top());
-				modelStack.PopMatrix();
+				if (blockList[i]->position.DistSquared(camera->position) < 16 * 16)
+				{
+					modelStack.PushMatrix();
+					blockList[i]->RenderObject(modelStack);
+					MMat.push_back(modelStack.Top());
+					modelStack.PopMatrix();
+				}
 			}
 		}
 
