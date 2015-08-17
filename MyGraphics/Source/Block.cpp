@@ -329,7 +329,7 @@ bool Block::operator<(Block & rhs)
 
 void Block::PrintData(ostream& os)
 {
-	os << MinScene::PositionToIndex(position) << " " << id << endl;
+	os << MinScene::PositionToIndex(position) << " " << id << " " << type << endl;
 }
 
 Stair::Stair() : orientation(0), look(0)

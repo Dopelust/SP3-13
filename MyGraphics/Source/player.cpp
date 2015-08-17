@@ -79,15 +79,12 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 		}
 		else
 		{
-			if (velocity.x > 0)
-				Fall(velocity.x, dt * 16, 0);
-			else if (velocity.x < 0)
-				Rise(velocity.x, dt * 16, 0);
-
-			if (velocity.z > 0)
-				Fall(velocity.z, dt * 16, 0);
-			else if (velocity.z < 0)
-				Rise(velocity.z, dt * 16, 0);
+			velocity.x += -velocity.x * dt * 16;
+			velocity.z += -velocity.z * dt * 16;
+			if (velocity.x > -0.1f && velocity.x < 0.1f)
+				velocity.x = 0;
+			if (velocity.z > -0.1f && velocity.z < 0.1f)
+				velocity.z = 0;
 		}
 
 		if (myKeys[' '])
@@ -152,9 +149,9 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 	{
 		velocity.x += -velocity.x * dt * 16;
 		velocity.z += -velocity.z * dt * 16;
-		if (velocity.x > -0.01f && velocity.x < 0.01f)
+		if (velocity.x > -0.1f && velocity.x < 0.1f)
 			velocity.x = 0;
-		if (velocity.z > -0.01f && velocity.z < 0.01f)
+		if (velocity.z > -0.1f && velocity.z < 0.1f)
 			velocity.z = 0;
 	}
 

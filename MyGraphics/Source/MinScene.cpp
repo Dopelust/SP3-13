@@ -73,8 +73,8 @@ void MinScene::Init()
 	}
 	cout << "Initializing Objects..." << endl;
 
-	GenerateWorld(Vector3(worldX, 1, worldZ));
-	//Load("Save//save1.txt");
+	//GenerateWorld(Vector3(worldX, 1, worldZ));
+	Load("Save//save1.txt");
 
 	cout << worldBlocks <<  " Objects Initialized." << endl << endl;
 
@@ -1087,7 +1087,7 @@ void MinScene::Render2D()
 	for (unsigned i = 0; i < blockInventory.size; ++i)
 	{
 		modelStack.PushMatrix();
-		modelStack.Translate(Application::m_width * (i * 0.04f + 0.033f), Application::m_height * 0.05f, 0);
+		modelStack.Translate(Application::m_width * (i * 0.038f + 0.0275f), Application::m_height * 0.05f, 0);
 
 		modelStack.PushMatrix();
 		modelStack.Scale(28);
@@ -1246,9 +1246,9 @@ bool MinScene::Load(const char * filepath)
 					camera->orientation = data[3]; camera->look = data[4];
 				}
 			}
-			else if (data.size() == 4)
+			else if (data.size() == 5)
 			{
-				FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3]);
+				FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]);
 			}
 			else
 			{
@@ -1276,9 +1276,9 @@ bool MinScene::GenerateWorld(Vector3 size)
 	vector<Vector3> terrainRise;
 
 	int y = worldY*0.5f - size.y*0.5f;
-	for (unsigned z = 0; z < size.x; ++z)
+	for (unsigned z = 0; z < size.z; ++z)
 	{
-		for (unsigned x = 0; x < size.z; ++x)
+		for (unsigned x = 0; x < size.x; ++x)
 		{
 			FetchBlock(Vector3(x, y, z), false, 0); //Create a flat piece of land
 
@@ -1288,9 +1288,9 @@ bool MinScene::GenerateWorld(Vector3 size)
 	}
 
 	for (unsigned i = 0; i < terrainRise.size(); ++i) //Generate the hills
-	for (unsigned z = 0; z < size.x; ++z)
+	for (unsigned z = 0; z < size.z; ++z)
 	{
-		for (unsigned x = 0; x < size.z; ++x)
+		for (unsigned x = 0; x < size.x; ++x)
 		{
 			Vector3 pos(x, terrainRise[i].y, z);
 			int random = rand() % 3 + 3; //Randomize hill size
@@ -1308,9 +1308,9 @@ bool MinScene::GenerateWorld(Vector3 size)
 	}
 
 	y++;
-	for (unsigned z = 1; z < size.x - 1; ++z)
+	for (unsigned z = 1; z < size.z - 1; ++z)
 	{
-		for (unsigned x = 1; x < size.z - 1; ++x)
+		for (unsigned x = 1; x < size.x - 1; ++x)
 		{
 			if (!worldBlockList[x][y][z]) //Fill in holes
 			{
@@ -1338,9 +1338,9 @@ bool MinScene::GenerateWorld(Vector3 size)
 		}
 	}
 
-	for (unsigned z = 0; z < size.x; ++z)
+	for (unsigned z = 0; z < size.z; ++z)
 	{
-		for (unsigned x = 0; x < size.z; ++x)
+		for (unsigned x = 0; x < size.x; ++x)
 		{
 			if (worldBlockList[x][y][z])
 			{
