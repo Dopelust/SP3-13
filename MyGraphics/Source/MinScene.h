@@ -51,13 +51,13 @@ public:
 
 private:
 	vector<Living*> LivingThings;
+	vector<Living*> worldLivingThings;
 
 	unsigned worldBlocks;
 	Block* selectedBlock;
 	Block* worldBlockList[worldX][worldY][worldZ];
 	vector<Block*> blockList;
 	vector<Block*> alphaBlockList;
-	vector<vector<Block*>> collisionBlockList;
 	vector<Particle> particleList;
 	void ObtainBlockList();
 	BlockFactory blockInventory;

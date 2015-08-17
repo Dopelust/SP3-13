@@ -89,7 +89,7 @@ void MinScene::Init()
 		entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 		entity->collision.centre.Set(0, 0.9f, 0);
 		entity->id = rand() % 3;
-		LivingThings.push_back(entity);
+		worldLivingThings.push_back(entity);
 	}
 }
 
@@ -244,8 +244,21 @@ Vector3 MinScene::PositionToIndex(Vector3 pos)
 
 void MinScene::ObtainBlockList()
 {	
+	unsigned count = LivingThings.size();
+	for (unsigned i = 0; i < count; ++i)
+		LivingThings[i]->collisionBlockList.clear();
+
+	LivingThings.clear();
 	alphaBlockList.clear();
 	blockList.clear();
+
+	count = worldLivingThings.size();
+	for (unsigned i = 0; i < count; ++i)
+	{
+		if (camera->position.DistSquared(worldLivingThings[i]->position) < RenderDist * RenderDist)
+			LivingThings.push_back(worldLivingThings[i]);
+	}
+	count = LivingThings.size();
 
 	Vector3 index = PositionToIndex(camera->position);
 	int zBegin = Math::Max(0, (int)(index.z - RenderDist));
@@ -276,6 +289,12 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
+
+						for (unsigned i = 0; i < count; ++i)
+						{
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+						}
 					}
 				}
 			}
@@ -295,6 +314,12 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
+
+						for (unsigned i = 0; i < count; ++i)
+						{
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+						}
 					}
 				}
 			}
@@ -314,6 +339,12 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
+
+						for (unsigned i = 0; i < count; ++i)
+						{
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+						}
 					}
 				}
 			}
@@ -349,10 +380,7 @@ void MinScene::Update(double dt)
 
 	unsigned count = LivingThings.size();
 	for (unsigned i = 0; i < count; ++i)
-	{
-		if (camera->position.DistSquared(LivingThings[i]->position) < 48*48)
-			LivingThings[i]->Update(dt, blockList, false);
-	}
+		LivingThings[i]->Update(dt, false);
 
 	lights[0].position.Set(camera->position.x, 4, camera->position.z);
 

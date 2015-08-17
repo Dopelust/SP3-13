@@ -10,7 +10,7 @@ public:
 	~Living();
 
 	unsigned id;
-	void Update(double dt, const vector<Block*>&object, bool RestrictMovement);
+	void Update(double dt, bool RestrictMovement);
 };
 
 #endif

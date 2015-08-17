@@ -23,6 +23,7 @@ public:
 	Vector3 position;
 	Vector3 velocity;
 	Collision collision;
+	vector<Block*> collisionBlockList;
 
 	float hOrientation;
 	float vOrientation;

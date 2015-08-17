@@ -8,7 +8,7 @@ Living::~Living()
 {
 }
 
-void Living::Update(double dt, const vector<Block*>& object, bool RestrictMovement)
+void Living::Update(double dt, bool RestrictMovement)
 {
 	initialPos = position;
 	initialVel = velocity;
@@ -17,5 +17,5 @@ void Living::Update(double dt, const vector<Block*>& object, bool RestrictMoveme
 	position += velocity * dt;
 	velocity.y -= 30 * dt;
 
-	RespondToCollision(object);
+	RespondToCollision(this->collisionBlockList);
 }
