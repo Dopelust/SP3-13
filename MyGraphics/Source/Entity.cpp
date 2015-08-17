@@ -239,31 +239,45 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 		}
 	}
 
-	bool canClimb = true;
-
-	for (unsigned i = 0; i < cantClimb.size(); ++i)
+	if (shouldClimb)
 	{
-		if (shouldClimb == cantClimb[i])
-			canClimb = false;
-	}
-	if (canClimb)
-	{
-		Block P(Vector3(position.x, climb, position.z), collision.centre, collision.hitbox);
-		Block* blockToClimb = NULL;
+		bool canClimb = true;
 
-		unsigned count = object.size();
-		for (unsigned i = 0; i < count; ++i)
+		for (unsigned i = 0; i < cantClimb.size(); ++i)
 		{
-			if (object[i]->position != shouldClimb)
-			{
-				if (object[i]->type == Block::STAIR)
-				{
-					for (unsigned j = 0; j < object[i]->collisions.size(); ++j)
-					{
-						Block Blk(object[i]->position, object[i]->collisions[j].centre, object[i]->collisions[j].hitbox);
-						Blk.id = object[i]->id;
+			if (shouldClimb == cantClimb[i])
+				canClimb = false;
+		}
+		if (canClimb)
+		{
+			Block P(Vector3(position.x, climb, position.z), collision.centre, collision.hitbox);
+			Block* blockToClimb = NULL;
 
-						if (Block::checkCollision(P, Blk))
+			unsigned count = object.size();
+			for (unsigned i = 0; i < count; ++i)
+			{
+				if (object[i]->position != shouldClimb)
+				{
+					if (object[i]->type == Block::STAIR)
+					{
+						for (unsigned j = 0; j < object[i]->collisions.size(); ++j)
+						{
+							Block Blk(object[i]->position, object[i]->collisions[j].centre, object[i]->collisions[j].hitbox);
+							Blk.id = object[i]->id;
+
+							if (Block::checkCollision(P, Blk))
+							{
+								if (failToClimb.x != 0)
+									position.x = failToClimb.x;
+								if (failToClimb.z != 0)
+									position.z = failToClimb.z;
+								return;
+							}
+						}
+					}
+					else
+					{
+						if (Block::checkCollision(P, *object[i]))
 						{
 							if (failToClimb.x != 0)
 								position.x = failToClimb.x;
@@ -273,20 +287,9 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 						}
 					}
 				}
-				else
-				{
-					if (Block::checkCollision(P, *object[i]))
-					{
-						if (failToClimb.x != 0)
-							position.x = failToClimb.x;
-						if (failToClimb.z != 0)
-							position.z = failToClimb.z;
-						return;
-					}
-				}
 			}
-		}
 
-		position.y = climb;
+			position.y = climb;
+		}
 	}
 }
