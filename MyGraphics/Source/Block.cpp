@@ -256,13 +256,10 @@ char* Block::getSound(unsigned blockID)
 		if (rand() % 2)
 			return "Assets/Media/Block/grass3.mp3";
 		return "Assets/Media/Block/grass4.mp3";
-	case 2: 
+	case 2: case 14: case 16:
 		if (rand() % 2)
 			return "Assets/Media/Block/wood3.mp3";
 		return "Assets/Media/Block/wood4.mp3";
-	case 3: return "Assets/Media/Block/stone.mp3";
-	case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11:
-		return "Assets/Media/Block/stone.mp3";
 	case 12: 
 		if (rand() % 4)
 			return "Assets/Media/Block/gravel1.mp3";
@@ -271,6 +268,8 @@ char* Block::getSound(unsigned blockID)
 		if (rand() % 2)
 			return "Assets/Media/Block/gravel3.mp3";
 		return "Assets/Media/Block/gravel4.mp3";
+	default:
+		return "Assets/Media/Block/stone.mp3";
 	}
 
 	return NULL;
@@ -292,19 +291,10 @@ char* Block::getStepSound(unsigned blockID)
 		if (rand() % 2)
 			return "Assets/Media/Block/Step/grass5.mp3";
 		return "Assets/Media/Block/Step/grass6.mp3";
-	case 2:
+	case 2: case 14: case 16:
 		if (rand() % 2)
 			return "Assets/Media/Block/wood3.mp3";
 		return "Assets/Media/Block/wood4.mp3";
-	case 3: return "Assets/Media/Block/stone.mp3";
-	case 4: case 5: case 6: case 7: case 8: case 9: case 10: case 11:
-		if (rand() % 4)
-			return "Assets/Media/Block/Step/stone1.mp3";
-		if (rand() % 3)
-			return "Assets/Media/Block/Step/stone2.mp3";
-		if (rand() % 2)
-			return "Assets/Media/Block/Step/stone3.mp3";
-		return "Assets/Media/Block/Step/stone4.mp3";
 	case 12:
 		if (rand() % 4)
 			return "Assets/Media/Block/gravel1.mp3";
@@ -313,6 +303,14 @@ char* Block::getStepSound(unsigned blockID)
 		if (rand() % 2)
 			return "Assets/Media/Block/gravel3.mp3";
 		return "Assets/Media/Block/gravel4.mp3";
+	default:
+		if (rand() % 4)
+			return "Assets/Media/Block/Step/stone1.mp3";
+		if (rand() % 3)
+			return "Assets/Media/Block/Step/stone2.mp3";
+		if (rand() % 2)
+			return "Assets/Media/Block/Step/stone3.mp3";
+		return "Assets/Media/Block/Step/stone4.mp3";
 	}
 
 	return NULL;
@@ -389,7 +387,7 @@ void BlockFactory::Init()
 		{
 			blockList.push_back(Block(i, Block::DEFAULT));
 
-			if (i != 9)
+			if (i != 9 && i != 16)
 				blockList.push_back(Block(i, Block::STAIR));
 		}
 	}

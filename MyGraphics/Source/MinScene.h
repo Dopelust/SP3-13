@@ -82,6 +82,8 @@ private:
 	bool Save(const char* filepath);
 	bool Load(const char* filepath);
 	bool GenerateWorld(Vector3 size);
+
+	bool Convert(const char* filepath);
 };
 
 #endif

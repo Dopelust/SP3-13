@@ -374,7 +374,7 @@ void MinScene::Update(double dt)
 	}
 	else if (bNButtonPressed && !Application::IsKeyPressed('N'))
 		bNButtonPressed = false;
-
+		
 	player.Update(dt, blockList, shouldRenderChat);
 	soundUpdate(player);
 
@@ -548,6 +548,16 @@ void MinScene::Update(double dt)
 			--count;
 		}
 	}
+
+	static bool bEButtonPressed = false;
+
+	if (!bNButtonPressed && Application::IsKeyPressed('E'))
+	{
+		Save("Save//save1.txt");
+		bNButtonPressed = true;
+	}
+	else if (bNButtonPressed && !Application::IsKeyPressed('E'))
+		bNButtonPressed = false;
 
 	elapsedTime += dt;
 }
@@ -1087,26 +1097,18 @@ void MinScene::Render2D()
 	for (unsigned i = 0; i < blockInventory.size; ++i)
 	{
 		modelStack.PushMatrix();
-		modelStack.Translate(Application::m_width * (i * 0.038f + 0.0275f), Application::m_height * 0.05f, 0);
+		modelStack.Translate(Application::m_width * (i * 0.036f + 0.0275f), Application::m_height * 0.05f, 0);
 
 		modelStack.PushMatrix();
 		modelStack.Scale(28);
 		MMat[Block::NUM_TYPES].push_back(modelStack.Top());
-
-		if (&blockInventory.getBlock() == &blockInventory.getBlock(i))
-		{
-			modelStack.Scale(2.1f);
-			modelStack.Translate(0, 0.06f, 0);
-			meshList["QUAD"]->textureID = textureID["SELECTOR"];
-			RenderMesh(meshList["QUAD"], false);
-			meshList["QUAD"]->textureID = NULL;
-		}
-
 		modelStack.PopMatrix();
 
 		modelStack.PushMatrix();
 		modelStack.Rotate(25, 1, 0, 0);
 		modelStack.Rotate(45, 0, 1, 0);
+		if (&blockInventory.getBlock() == &blockInventory.getBlock(i))
+			modelStack.Scale(1.5f);
 		modelStack.Scale(24);
 		modelStack.Translate(-1, 0.125f, 0);
 
@@ -1267,6 +1269,43 @@ bool MinScene::Load(const char * filepath)
 	}
 
 	std::cout << "Failed to load" << filepath << endl;
+
+	return false;
+}
+
+bool MinScene::Convert(const char * filepath)
+{
+	int lineCount = 1;
+	string line;
+	vector<string> data;
+
+	ifstream inputFile;
+	inputFile.open(filepath);
+
+	if (inputFile.is_open())
+	{
+		while (getline(inputFile, line))
+		{
+			if (lineCount > 1)
+				line += " 1";
+			data.push_back(line);
+			lineCount++;
+		}
+
+		inputFile.close();
+	}
+
+	ofstream outputFile;
+	outputFile.open(filepath);
+
+	if (outputFile.is_open())
+	{
+		for (unsigned i = 0; i < data.size(); ++i)
+			outputFile << data[i] << endl;
+		outputFile.close();
+
+		return true;
+	}
 
 	return false;
 }
@@ -1465,8 +1504,6 @@ void MinScene::RenderSkybox()
 
 void MinScene::Exit()
 {
-	if (Application::IsKeyPressed('E'))
-		Save("Save//save1.txt");
 	soundExit();
 
 	while (particleList.size() > 0)
