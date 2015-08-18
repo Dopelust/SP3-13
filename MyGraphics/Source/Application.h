@@ -33,9 +33,9 @@ public:
 	static float textspace[255];
 	static float getTextWidth(string t);
 
+	static StopWatch m_timer;
 private:
 	//Declare a window object
-	StopWatch m_timer;
 	double m_dElapsedTime;
 	double m_dAccumulatedTime_ThreadOne;
 	double m_dAccumulatedTime_ThreadTwo;

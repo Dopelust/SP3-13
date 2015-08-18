@@ -12,7 +12,7 @@ This is the player .h file
 
 #include "StateMachine.h"
 #include "Utility.h"
-#include "Entity.h"
+#include "Living.h"
 #include "Camera3.h"
 
 #include <vector>
@@ -31,6 +31,7 @@ public:
 
 	float WALK_SPEED;
 	Camera3 camera;
+	Living* mount;
 
 	float eyeLevel;
 	

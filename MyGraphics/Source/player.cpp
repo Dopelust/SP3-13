@@ -118,15 +118,21 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 		sneak = true;
 		WALK_SPEED = 1.295f;
 		eyeLevel = 1.52f;
-	}
-	else if (myKeys['C'])
-	{
-		WALK_SPEED = 5.612f;
-		eyeLevel = 1.62f;
+		Fall(camera.fov, 128 * dt, 70);
 	}
 	else
 	{
-		WALK_SPEED = 4.317f;
+		if (myKeys['C'])
+		{
+			WALK_SPEED = 5.612f;
+			Rise(camera.fov, 128 * dt, 80);
+		}
+		else
+		{
+			WALK_SPEED = 4.317f;
+			Fall(camera.fov, 128 * dt, 70);
+		}
+
 		eyeLevel = 1.62f;
 	}
 

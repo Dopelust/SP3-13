@@ -21,6 +21,7 @@ int Application::mouseScroll = 0;
 
 int Application::m_width;
 int Application::m_height;
+StopWatch Application::m_timer;
 
 //Define an error callback
 static void error_callback(int error, const char* description)

@@ -74,10 +74,7 @@ private:
 	float RenderDist;
 	Player player;
 
-	void writeLine();
-	float chatInputLimiter;
-	bool shouldRenderChat;
-	string line;
+	string tooltip;
 
 	bool Save(const char* filepath);
 	bool Load(const char* filepath);

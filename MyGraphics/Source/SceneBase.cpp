@@ -158,6 +158,9 @@ void SceneBase::InitMesh()
 	meshList["MT_BLOCK"] = MeshBuilder::GenerateGrassBlock("Block", Color(1, 1, 1), 1, 1, 1, 1);
 	meshList["MT_BLOCK"]->textureID = Load2DTGA("Assets//mtBlock.tga", false);
 
+	meshList["HORSE"] = MeshBuilder::GenerateOBJ("Block", "Assets//Horse//horse.obj");
+	meshList["HORSE"]->textureID = textureID["HORSE"] = Load2DTGA("Assets//Horse//npc_horse.tga");
+
 	meshList["HEAD"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Head.obj");
 	meshList["BODY"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Body.obj");
 	meshList["L_ARM"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//LeftArm.obj");
@@ -173,7 +176,8 @@ void SceneBase::InitMesh()
 	textureID["PLAYER2"] = Load2DTGA("Assets//Player//gregor.tga");
 	textureID["PLAYER3"] = Load2DTGA("Assets//Player//sand.tga");
 	textureID["PLAYER4"] = Load2DTGA("Assets//Player//silver.tga");
-
+	
+	
 	cout << "Mesh Loaded." << endl << endl;
 }
 

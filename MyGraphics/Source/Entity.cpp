@@ -251,7 +251,6 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 		if (canClimb)
 		{
 			Block P(Vector3(position.x, climb, position.z), collision.centre, collision.hitbox);
-			Block* blockToClimb = NULL;
 
 			unsigned count = object.size();
 			for (unsigned i = 0; i < count; ++i)
@@ -288,7 +287,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 					}
 				}
 			}
-
+			
 			position.y = climb;
 		}
 	}
