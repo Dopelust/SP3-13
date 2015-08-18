@@ -97,7 +97,8 @@ void SceneShadow::Init()
 	m_parameters[U_PARTICLE_TEXTURE] = glGetUniformLocation(m_programID, "particleTex");
 	m_parameters[U_COLOR_TEXTURE_ENABLED] = glGetUniformLocation(m_programID, "colorTextureEnabled");
 	m_parameters[U_COLOR_TEXTURE] = glGetUniformLocation(m_programID, "colorTexture");
-
+	m_parameters[U_COLOR_SCALE_ENABLED] = glGetUniformLocation(m_programID, "colorScaleEnabled");
+	m_parameters[U_COLOR_SCALE] = glGetUniformLocation(m_programID, "colorScale");
 	m_parameters[U_TEXT_ENABLED] = glGetUniformLocation(m_programID, "textEnabled");
 	m_parameters[U_TEXT_COLOR] = glGetUniformLocation(m_programID, "textColor");
 

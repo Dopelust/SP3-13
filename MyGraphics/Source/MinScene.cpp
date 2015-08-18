@@ -103,6 +103,9 @@ void MinScene::Init()
 		entity->id = id;
 		worldLivingThings.push_back(entity);
 	}
+
+	InTheZone = false;
+	ZoneBar = MaxZoneTime = 12;
 }
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
@@ -401,6 +404,63 @@ void MinScene::Update(double dt)
 		blockInventory.Update();
 	else
 		player.inventory.Update();
+
+	static bool bLButtonPressed = false;
+
+	if (!bLButtonPressed && Application::IsKeyPressed('L'))
+	{
+		bLButtonPressed = true;
+
+		if (!InTheZone && ZoneBar == MaxZoneTime)
+		{
+			ISound* sound = engine->play2D("Assets/Media/unravel.wav", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.2f);
+				sound->setIsPaused(false);
+			}
+			sound = engine->play2D("Assets/Media/SlowMoIn.mp3", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.3f);
+				sound->setIsPaused(false);
+			}
+			InTheZone = true;
+		}
+	}
+	else if (bLButtonPressed && !Application::IsKeyPressed('L'))
+		bLButtonPressed = false;
+	
+	if (InTheZone)
+	{
+		ZoneBar -= dt;
+		dt *= 0.25f;
+
+		if (ZoneBar < 0)
+		{
+			InTheZone = false;
+			ZoneBar = 0.f;
+
+			ISound* sound = engine->play2D("Assets/Media/SlowMoOut.mp3", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.25f);
+				sound->setIsPaused(false);
+			}
+		}
+
+		Color color(0.75f, 0.75f, 1);
+		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+		glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+	}
+	else
+	{
+		ZoneBar += dt;
+		ZoneBar = ZoneBar > MaxZoneTime ? MaxZoneTime : ZoneBar;
+		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+	}
+
+	/***************************************************************************************************/
 
 	if (elapsedTime >= (nextUpdate*0.5f))
 	{
@@ -1036,6 +1096,7 @@ void MinScene::RenderScene()
 
 void MinScene::Render2D()
 {
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 	ostringstream ss;
 
 	modelStack.PushMatrix();
@@ -1166,7 +1227,8 @@ void MinScene::Render2D()
 
 	if (!player.noClip)
 	{
-		vector<Mtx44>MMat;
+		Mtx44 MMat[CInventory::InventorySize];
+
 		for (unsigned i = 0; i < CInventory::InventorySize; ++i)
 		{
 			modelStack.PushMatrix();
@@ -1174,13 +1236,12 @@ void MinScene::Render2D()
 			modelStack.Scale(64);
 			if (player.inventory.selectedSlot == player.inventory.slot[i])
 				modelStack.Scale(1.5f);
-			MMat.push_back(modelStack.Top());
+			MMat[i] = modelStack.Top();
 			modelStack.PopMatrix();
 		}
 
 		meshList["QUAD"]->textureID = textureID["SELECTOR"];
-		if (MMat.size() > 0)
-			RenderInstance(meshList["QUAD"], MMat.size(), &MMat[0], false);
+		RenderInstance(meshList["QUAD"], CInventory::InventorySize, &MMat[0], false);
 		meshList["QUAD"]->textureID = NULL;
 	}
 	else
@@ -1236,6 +1297,21 @@ void MinScene::Render2D()
 			RenderInstanceAtlas(meshList["BLOCK"], MMat[3].size(), &MMat[3][0], &texOffset[3][0]);
 		}
 	}
+	glUniform1i(m_parameters[U_TEXTURE_ROWS], 0);
+
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + MaxZoneTime * 20 * 0.5f, 450, 0);
+	modelStack.Scale(MaxZoneTime * 20, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + ZoneBar * 20 * 0.5f, 450, 0);
+	modelStack.Scale(ZoneBar * 20, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
 }
 
 bool MinScene::Save(const char * filepath)

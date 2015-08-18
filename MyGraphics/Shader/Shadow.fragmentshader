@@ -89,6 +89,8 @@ uniform bool colorTextureEnabled;		// this give texture color
 uniform sampler2D colorTexture;			// this give texture color
 uniform bool textEnabled;
 uniform vec3 textColor;
+uniform bool colorScaleEnabled;
+uniform vec3 colorScale;
 uniform float fragmentAlpha;
 uniform FogParam fogParam;
 uniform sampler2D shadowMap;
@@ -180,5 +182,12 @@ void main(){
 		float fogDistance = abs(vertexPosition_cameraspace.z);
 		float fogFactor = getFogFactor(fogParam, fogDistance);
 		color.xyz = mix(color.xyz, fogParam.color, fogFactor);
+	}
+
+	if (colorScaleEnabled)
+	{	
+		float average = (color.r + color.g + color.b) / 3.0;
+		color = vec4(average, average, average, color.a);
+		color *= vec4(colorScale.x, colorScale.y, colorScale.z, 1);
 	}
 }

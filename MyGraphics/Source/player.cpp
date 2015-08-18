@@ -65,15 +65,15 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 
 		Vector3 hVel;
 		if (myKeys['w'])
-			hVel += direction * WALK_SPEED;
+			hVel += direction;
 		if (myKeys['a'])
-			hVel += -right * WALK_SPEED;
+			hVel += -right;
 		if (myKeys['s'])
-			hVel += -direction * WALK_SPEED;
+			hVel += -direction;
 		if (myKeys['d'])
-			hVel += right * WALK_SPEED;
+			hVel += right;
 
-		if (hVel.LengthSquared() > 1)
+		if (hVel.LengthSquared() > 0)
 		{
 			hVel.Normalize() *= WALK_SPEED;
 			velocity.x = hVel.x; velocity.z = hVel.z;
@@ -138,16 +138,16 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 	}
 
 	Vector3 hVel;
-	if(myKeys['w'])
-		hVel += direction * WALK_SPEED;
-	if(myKeys['a'])
-		hVel += -right * WALK_SPEED;
-	if(myKeys['s'])
-		hVel += -direction * WALK_SPEED;
-	if(myKeys['d'])
-		hVel += right * WALK_SPEED;
+	if (myKeys['w'])
+		hVel += direction;
+	if (myKeys['a'])
+		hVel += -right;
+	if (myKeys['s'])
+		hVel += -direction;
+	if (myKeys['d'])
+		hVel += right;
 
-	if (hVel.LengthSquared() > 1)
+	if (hVel.LengthSquared() > 0)
 	{
 		hVel.Normalize() *= WALK_SPEED;
 		velocity.x = hVel.x; velocity.z = hVel.z;
@@ -175,8 +175,19 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 
 	if (mount)
 	{
-		mount->velocity.x = velocity.x * 2;
-		mount->velocity.z = velocity.z * 2;
+		WALK_SPEED = 11;
+
+		Vector3 hVel;
+		if (myKeys['w'])
+			hVel += direction * WALK_SPEED;
+		if (myKeys['a'])
+			hVel += -right * WALK_SPEED * 0.333f;
+		if (myKeys['s'])
+			hVel += -direction * WALK_SPEED * 0.333f;
+		if (myKeys['d'])
+			hVel += right * WALK_SPEED * 0.333f;
+
+			mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
 
 		if (mount->jump && mount->velocity.y == 0)
 			mount->jump = false;

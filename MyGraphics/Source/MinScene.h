@@ -81,6 +81,10 @@ private:
 	bool GenerateWorld(Vector3 size);
 
 	bool Convert(const char* filepath);
+
+	float ZoneBar;
+	float MaxZoneTime;
+	bool InTheZone;
 };
 
 #endif
