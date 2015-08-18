@@ -31,6 +31,7 @@ public:
 	float lifetime;
 	Vector3 size;
 	bool showOnMinimap;
+	bool jump;
 
 	bool IsActive();
 	void SetActive(bool active);
@@ -42,8 +43,8 @@ public:
 
 protected:
 	bool active;
-	bool jump;
 	bool sneak;
+	float climbHeight;
 	float stepRate;
 	char* stepSound;
 };

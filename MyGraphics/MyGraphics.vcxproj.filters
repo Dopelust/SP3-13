@@ -138,6 +138,24 @@
     <ClCompile Include="Source\Living.cpp">
       <Filter>Source Files\Game\3D\Entity</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Inventory.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Item.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Weapon.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Bow.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Knife.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Food.cpp">
+      <Filter>Source Files\Game\3D</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Camera.h">
@@ -214,6 +232,24 @@
     </ClInclude>
     <ClInclude Include="Source\Living.h">
       <Filter>Header Files\Game\3D\Entity</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Weapon.h">
+      <Filter>Header Files\Game\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Bow.h">
+      <Filter>Header Files\Game\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Food.h">
+      <Filter>Header Files\Game\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Inventory.h">
+      <Filter>Header Files\Game\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Item.h">
+      <Filter>Header Files\Game\3D</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Knife.h">
+      <Filter>Header Files\Game\3D</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

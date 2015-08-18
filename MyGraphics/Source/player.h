@@ -14,6 +14,7 @@ This is the player .h file
 #include "Utility.h"
 #include "Living.h"
 #include "Camera3.h"
+#include "Inventory.h"
 
 #include <vector>
 #include <string>
@@ -29,8 +30,9 @@ public:
 	Player(){}
 	~Player(){}
 
-	float WALK_SPEED;
 	Camera3 camera;
+	CInventory inventory;
+	float WALK_SPEED;
 	Living* mount;
 
 	float eyeLevel;

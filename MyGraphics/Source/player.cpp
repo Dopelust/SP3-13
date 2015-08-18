@@ -28,6 +28,7 @@ void Player::Init()
 	hOrientation = 0;
 	vOrientation = 0;
 	stepSound = NULL;
+	mount = NULL;
 	eyeLevel = 1.62f;
 	collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 	collision.centre.Set(0, collision.hitbox.y / 2, 0);
@@ -162,16 +163,35 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 	}
 
 	UpdateVelocity(dt);
-	if(myKeys[' '] && !jump && (velocity.y > -2.f && velocity.y <= 0))
-	{
-		jump = true;
-		velocity.y = 8.25f;
-	}
+	if (!mount)
+		if(myKeys[' '] && !jump && (velocity.y > -2.f && velocity.y <= 0))
+		{
+			jump = true;
+			velocity.y = 8.25f;
+		}
 
 	position += velocity * dt;
 	RespondToCollision(object);
-		
-	if (velocity.y == 0)
+
+	if (mount)
+	{
+		mount->velocity.x = velocity.x * 2;
+		mount->velocity.z = velocity.z * 2;
+
+		if (mount->jump && mount->velocity.y == 0)
+			mount->jump = false;
+		if (myKeys[' '] && !mount->jump && (mount->velocity.y > -2.f && mount->velocity.y <= 0))
+		{
+			mount->jump = true;
+			mount->velocity.y = 14.f;
+		}
+		mount->hOrientation = hOrientation;
+
+		position = mount->position;
+		position.y += 1.1f;
+		velocity.SetZero();
+	}
+	else if (velocity.y == 0)
 	{	
 		if (!myKeys['S'])
 		{

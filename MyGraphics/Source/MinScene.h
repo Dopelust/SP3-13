@@ -20,7 +20,7 @@ Header file for the Project/SP Scene.
 using namespace irrklang;
 
 #define worldX 256
-#define worldY 32
+#define worldY 48
 #define worldZ 256
 
 class MinScene : public SceneShadow

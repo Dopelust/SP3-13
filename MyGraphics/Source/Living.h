@@ -13,4 +13,10 @@ public:
 	void Update(double dt, bool RestrictMovement);
 };
 
+class Horse : public Living
+{
+public:
+	Horse();
+	~Horse();
+};
 #endif

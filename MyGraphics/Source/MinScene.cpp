@@ -82,12 +82,25 @@ void MinScene::Init()
 
 	for (unsigned i = 0; i < 20; ++i)
 	{
+		unsigned id = rand() % 4;
+		if (id == 3)
+		{
+			Horse* entity = new Horse();
+			entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 5);
+			entity->hOrientation = rand() % 360;
+			entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
+			entity->collision.centre.Set(0, 1.05f, 0);
+			entity->id = id;
+			worldLivingThings.push_back(entity);
+			continue;
+		}
+		
 		Living* entity = new Living();
 		entity->position.Set(rand()%101 - 50, 1, rand() % 101 - 5);
 		entity->hOrientation = rand() % 360;
 		entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 		entity->collision.centre.Set(0, 0.9f, 0);
-		entity->id = rand() % 4;
+		entity->id = id;
 		worldLivingThings.push_back(entity);
 	}
 }
@@ -310,11 +323,11 @@ void MinScene::ObtainBlockList()
 
 						for (unsigned i = 0; i < count; ++i)
 						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
 
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
@@ -338,11 +351,11 @@ void MinScene::ObtainBlockList()
 
 						for (unsigned i = 0; i < count; ++i)
 						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
 
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
@@ -366,11 +379,11 @@ void MinScene::ObtainBlockList()
 
 						for (unsigned i = 0; i < count; ++i)
 						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
 						}
 
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 16 * 16)
+						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
 							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
@@ -384,7 +397,10 @@ void MinScene::ObtainBlockList()
 void MinScene::Update(double dt)
 {
 	SceneBase::Update(dt);
-	blockInventory.Update();
+	if (player.noClip)
+		blockInventory.Update();
+	else
+		player.inventory.Update();
 
 	if (elapsedTime >= (nextUpdate*0.5f))
 	{
@@ -394,12 +410,12 @@ void MinScene::Update(double dt)
 
 	static bool bNButtonPressed = false;
 
-	if (!bNButtonPressed && Application::IsKeyPressed('N'))
+	if (!bNButtonPressed && Application::IsKeyPressed(VK_TAB))
 	{
 		player.noClip = player.noClip ? false : true;
 		bNButtonPressed = true;
 	}
-	else if (bNButtonPressed && !Application::IsKeyPressed('N'))
+	else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
 		bNButtonPressed = false;
 
 	player.Update(dt, blockList, false);
@@ -436,6 +452,7 @@ void MinScene::Update(double dt)
 	}
 
 	tooltip.clear();
+	Living* selectedEntity = NULL;
 	selectedBlock = NULL;
 
 	float dist = INT_MAX;
@@ -449,8 +466,9 @@ void MinScene::Update(double dt)
 		{
 			if (rayDist < dist)
 			{
+				selectedEntity = LivingThings[i];
 				dist = rayDist;
-
+				
 				if (LivingThings[i]->id == 3)
 					tooltip = "Press [E] to mount horse.";
 			}
@@ -464,11 +482,28 @@ void MinScene::Update(double dt)
 		{
 			if (rayDist < dist)
 			{
-				selectedBlock = blockList[i];
+				selectedBlock = blockList[i]; selectedEntity = NULL;
 				dist = rayDist;
 			}
 		}
 	}
+
+	static bool bEButtonPressed = false;
+
+	if (!bEButtonPressed && Application::IsKeyPressed('E'))
+	{
+		bEButtonPressed = true;
+
+		if (player.mount)
+			player.mount = NULL;
+		else if (selectedEntity && selectedEntity->id == 3)
+			player.mount = selectedEntity;
+	}
+	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
+		bEButtonPressed = false;
+
+	if (player.mount)
+		tooltip = "Press [E] to dismount.";
 
 	static bool bRMouseButtonPressed = false;
 	static float bRMouseButtonElapsed = 0.f;
@@ -630,8 +665,8 @@ bool MinScene::RemoveBlock(Block* block)
 void MinScene::Render()
 {
 	RenderPassGPass();
-	RenderBlocks_GPass();
 	RenderEntities_GPass();
+	RenderBlocks_GPass();
 
 	RenderPassMain();
 	Mtx44 projection;
@@ -904,6 +939,7 @@ void MinScene::RenderBlocks()
 
 void MinScene::RenderScene()
 {
+	RenderEntities();
 	RenderBlocks();
 
 	if (selectedBlock)
@@ -996,8 +1032,6 @@ void MinScene::RenderScene()
 		glUniform1i(m_parameters[U_PARTICLE_TEXTURE], 0);
 		glUniform1i(m_parameters[U_TEXTURE_ROWS], 0);
 	}
-
-	RenderEntities();
 }
 
 void MinScene::Render2D()
@@ -1130,55 +1164,77 @@ void MinScene::Render2D()
 
 	glUniform1f(m_parameters[U_ALPHA], 1);
 
-	Mtx44 selectorMMat;
-	vector<Mtx44>MMat[Block::NUM_TYPES + 1];
-	vector<TexCoord>texOffset[Block::NUM_TYPES];
-	
-	for (unsigned i = 0; i < blockInventory.size; ++i)
+	if (!player.noClip)
 	{
-		modelStack.PushMatrix();
-		modelStack.Translate(Application::m_width * (i * 0.036f + 0.0275f), Application::m_height * 0.05f, 0);
+		vector<Mtx44>MMat;
+		for (unsigned i = 0; i < CInventory::InventorySize; ++i)
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate((Application::m_width - 64 * CInventory::InventorySize) + i * 64, 64, 0);
+			modelStack.Scale(64);
+			if (player.inventory.selectedSlot == player.inventory.slot[i])
+				modelStack.Scale(1.5f);
+			MMat.push_back(modelStack.Top());
+			modelStack.PopMatrix();
+		}
 
-		modelStack.PushMatrix();
-		modelStack.Scale(28);
-		MMat[Block::NUM_TYPES].push_back(modelStack.Top());
-		modelStack.PopMatrix();
-
-		modelStack.PushMatrix();
-		modelStack.Rotate(25, 1, 0, 0);
-		modelStack.Rotate(45, 0, 1, 0);
-		if (&blockInventory.getBlock() == &blockInventory.getBlock(i))
-			modelStack.Scale(1.5f);
-		modelStack.Scale(24);
-		modelStack.Translate(-1, 0.125f, 0);
-
-		MMat[blockInventory.getBlock(i).type].push_back(modelStack.Top());
-		texOffset[blockInventory.getBlock(i).type].push_back(Block::getTextureOffset(blockInventory.getBlock(i).id, blockInventory.getBlock(i).type));
-
-		modelStack.PopMatrix();
-
-		modelStack.PopMatrix();
+		meshList["QUAD"]->textureID = textureID["SELECTOR"];
+		if (MMat.size() > 0)
+			RenderInstance(meshList["QUAD"], MMat.size(), &MMat[0], false);
+		meshList["QUAD"]->textureID = NULL;
 	}
-
-	meshList["QUAD"]->textureID = textureID["SLOT"];
-	RenderInstance(meshList["QUAD"], MMat[Block::NUM_TYPES].size(), &MMat[Block::NUM_TYPES][0], false);
-	meshList["QUAD"]->textureID = NULL;
-
-	glUniform1i(m_parameters[U_TEXTURE_ROWS], 4);
-	if (MMat[0].size() > 0)
-		RenderInstanceAtlas(meshList["BLOCK"], MMat[0].size(), &MMat[0][0], &texOffset[0][0]);
-	if (MMat[2].size() > 0)
-		RenderInstanceAtlas(meshList["STAIR"], MMat[2].size(), &MMat[2][0], &texOffset[2][0]);
-
-	if (MMat[1].size() > 0)
+	else
 	{
-		glUniform1i(m_parameters[U_TEXTURE_ROWS], 6);
-		RenderInstanceAtlas(meshList["MT_BLOCK"], MMat[1].size(), &MMat[1][0], &texOffset[1][0]);
-	}
-	if (MMat[3].size() > 0)
-	{
+		Mtx44 selectorMMat;
+		vector<Mtx44>MMat[Block::NUM_TYPES + 1];
+		vector<TexCoord>texOffset[Block::NUM_TYPES];
+
+		for (unsigned i = 0; i < blockInventory.size; ++i)
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(Application::m_width * (i * 0.036f + 0.0275f), Application::m_height * 0.05f, 0);
+
+			modelStack.PushMatrix();
+			modelStack.Scale(28);
+			MMat[Block::NUM_TYPES].push_back(modelStack.Top());
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Rotate(25, 1, 0, 0);
+			modelStack.Rotate(45, 0, 1, 0);
+			if (&blockInventory.getBlock() == &blockInventory.getBlock(i))
+				modelStack.Scale(1.5f);
+			modelStack.Scale(24);
+			modelStack.Translate(-1, 0.125f, 0);
+
+			MMat[blockInventory.getBlock(i).type].push_back(modelStack.Top());
+			texOffset[blockInventory.getBlock(i).type].push_back(Block::getTextureOffset(blockInventory.getBlock(i).id, blockInventory.getBlock(i).type));
+
+			modelStack.PopMatrix();
+
+			modelStack.PopMatrix();
+		}
+
+		meshList["QUAD"]->textureID = textureID["SLOT"];
+		RenderInstance(meshList["QUAD"], MMat[Block::NUM_TYPES].size(), &MMat[Block::NUM_TYPES][0], false);
+		meshList["QUAD"]->textureID = NULL;
+
 		glUniform1i(m_parameters[U_TEXTURE_ROWS], 4);
-		RenderInstanceAtlas(meshList["BLOCK"], MMat[3].size(), &MMat[3][0], &texOffset[3][0]);
+		if (MMat[0].size() > 0)
+			RenderInstanceAtlas(meshList["BLOCK"], MMat[0].size(), &MMat[0][0], &texOffset[0][0]);
+		if (MMat[2].size() > 0)
+			RenderInstanceAtlas(meshList["STAIR"], MMat[2].size(), &MMat[2][0], &texOffset[2][0]);
+
+		if (MMat[1].size() > 0)
+		{
+			glUniform1i(m_parameters[U_TEXTURE_ROWS], 6);
+			RenderInstanceAtlas(meshList["MT_BLOCK"], MMat[1].size(), &MMat[1][0], &texOffset[1][0]);
+		}
+		if (MMat[3].size() > 0)
+		{
+			glUniform1i(m_parameters[U_TEXTURE_ROWS], 4);
+			RenderInstanceAtlas(meshList["BLOCK"], MMat[3].size(), &MMat[3][0], &texOffset[3][0]);
+		}
 	}
 }
 

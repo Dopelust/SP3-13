@@ -89,13 +89,18 @@
   <ItemGroup>
     <ClCompile Include="Source\Application.cpp" />
     <ClCompile Include="Source\audio.cpp" />
+    <ClCompile Include="Source\Bow.cpp" />
     <ClCompile Include="Source\Camera.cpp" />
     <ClCompile Include="Source\Camera3.cpp" />
     <ClCompile Include="Source\DepthFBO.cpp" />
     <ClCompile Include="Source\Entity.cpp" />
+    <ClCompile Include="Source\Food.cpp" />
     <ClCompile Include="Source\Frustum.cpp" />
     <ClCompile Include="Source\GBuffer.cpp" />
     <ClCompile Include="Source\Block.cpp" />
+    <ClCompile Include="Source\Inventory.cpp" />
+    <ClCompile Include="Source\Item.cpp" />
+    <ClCompile Include="Source\Knife.cpp" />
     <ClCompile Include="Source\Living.cpp" />
     <ClCompile Include="Source\Minimap.cpp" />
     <ClCompile Include="Source\Particle.cpp" />
@@ -111,15 +116,21 @@
     <ClCompile Include="Source\SceneBase.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\vertex.cpp" />
+    <ClCompile Include="Source\Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.h" />
+    <ClInclude Include="Source\Bow.h" />
     <ClInclude Include="Source\Camera.h" />
     <ClInclude Include="Source\Camera3.h" />
     <ClInclude Include="Source\DepthFBO.h" />
     <ClInclude Include="Source\Entity.h" />
+    <ClInclude Include="Source\Food.h" />
     <ClInclude Include="Source\Frustum.h" />
     <ClInclude Include="Source\GBuffer.h" />
+    <ClInclude Include="Source\Inventory.h" />
+    <ClInclude Include="Source\Item.h" />
+    <ClInclude Include="Source\Knife.h" />
     <ClInclude Include="Source\Light.h" />
     <ClInclude Include="Source\Living.h" />
     <ClInclude Include="Source\Minimap.h" />
@@ -138,6 +149,7 @@
     <ClInclude Include="Source\SceneBase.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\vertex.h" />
+    <ClInclude Include="Source\Weapon.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

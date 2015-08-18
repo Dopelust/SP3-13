@@ -1,6 +1,6 @@
 #include "Entity.h"
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false)
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f)
 {
 	active = true;
 }
@@ -139,7 +139,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 
 			if (maxPlayer.z >= maxCube.z && minPlayer.z >= maxCube.z)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - 0.5f && minPlayer.y >= maxCube.y - 0.5f)
+				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -157,7 +157,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.z <= minCube.z && minPlayer.z <= minCube.z)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - 0.5f && minPlayer.y >= maxCube.y - 0.5f)
+				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -175,7 +175,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.x >= maxCube.x && minPlayer.x >= maxCube.x)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - 0.5f && minPlayer.y >= maxCube.y - 0.5f)
+				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -193,7 +193,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.x <= minCube.x && minPlayer.x <= minCube.x)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - 0.5f && minPlayer.y >= maxCube.y - 0.5f)
+				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{

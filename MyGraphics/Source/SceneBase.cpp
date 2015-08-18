@@ -168,7 +168,7 @@ void SceneBase::InitMesh()
 	meshList["R_ARM"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//RightArm.obj");
 	meshList["R_LEG"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//RightLeg.obj");
 
-	textureID["SLOT"] = Load2DTGA("Assets//Slot.tga", false);
+	textureID["SLOT"] = Load2DTGA("Assets//Slot.tga", false, false);
 	textureID["SELECTOR"] = Load2DTGA("Assets//Selector.tga", false);
 	textureID["SKYBOX"] = LoadTGA("Assets//Skybox.tga");
 	textureID["TEXT"] = Load2DTGA("Assets//Font//font.tga");
