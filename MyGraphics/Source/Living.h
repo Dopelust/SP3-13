@@ -13,10 +13,12 @@ public:
 	void Update(double dt, bool RestrictMovement);
 };
 
-class Horse : public Living
+class Arrow : public Living
 {
 public:
-	Horse();
-	~Horse();
+	Arrow();
+	~Arrow();
+
+	void RespondToCollision(const vector<Block*>&object);
 };
 #endif

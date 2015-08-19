@@ -14,24 +14,12 @@ bool IsEquals(int a, int b[], unsigned bSize)
 
 void Fall(float& value, float by, float until)
 {
-	if (value > until)
-	{
-		value -= by;
-
-		if (value < until)
-			value = until;
-	}
+	value = value - by < until ? until : value - by;
 }
 
 void Rise(float& value, float by, float until)
 {
-	if (value < until)
-	{
-		value += by;
-
-		if (value > until)
-			value = until;
-	}
+	value = value + by > until ? until : value + by;
 }
 
 void Knockback(Vector3& velocity, Vector3& velocityOffset, Vector3 direction)

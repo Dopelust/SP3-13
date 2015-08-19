@@ -162,6 +162,14 @@ void SceneBase::InitMesh()
 	meshList["HORSE"] = MeshBuilder::GenerateOBJ("Block", "Assets//Horse//horse.obj");
 	meshList["HORSE"]->textureID = textureID["HORSE"] = Load2DTGA("Assets//Horse//npc_horse.tga");
 
+	meshList["ARROW"] = MeshBuilder::GenerateOBJ("Arrow", "Assets//Arrow.obj");
+
+	meshList["BOW"] = MeshBuilder::GenerateOBJ("Bow", "Assets//Bow.obj");
+	meshList["BOW"]->textureID = Load2DTGA("Assets//Bow.tga");
+
+	//meshList["KNIFE"] = MeshBuilder::GenerateOBJ("Knife", "Assets//Karambit.obj");
+	//meshList["KNIFE"]->textureID = Load2DTGA("Assets//Bow.tga");
+
 	meshList["HEAD"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Head.obj");
 	meshList["BODY"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Body.obj");
 	meshList["L_ARM"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//LeftArm.obj");

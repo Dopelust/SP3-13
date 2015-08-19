@@ -2,7 +2,7 @@
 /*!
 \file	player.cpp
 \author Ricsson
-\par	
+\par
 \brief
 This is the camera3 cpp
 */
@@ -35,6 +35,9 @@ void Player::Init()
 	stepRate = 0;
 	apparentHealth = trueHealth = 100;
 	camera.Init(Vector3(position.x, position.y + eyeLevel, position.z), hOrientation, vOrientation);
+	SprintBar = MaxSprintTime = 4;
+	Sprint = false;
+	run = false;
 
 	for (unsigned i = 0; i < 255; ++i)
 	{
@@ -49,7 +52,7 @@ void Player::UpdateVelocity(double dt)
 	velocity.y -= 30.f * (float)dt;
 }
 
-void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovement)
+void Player::Update(double dt, bool RestrictMovement)
 {
 	sneak = false;
 	initialVel = velocity;
@@ -119,22 +122,40 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 		sneak = true;
 		WALK_SPEED = 1.295f;
 		eyeLevel = 1.52f;
-		Fall(camera.fov, 128 * dt, 70);
+		Fall(camera.fov, 100 * dt, 70);
+		Rise(SprintBar, dt, MaxSprintTime);
 	}
 	else
 	{
-		if (myKeys['C'])
+		if (myKeys['C'] && Sprint && run)
 		{
+			SprintBar -= dt;
 			WALK_SPEED = 5.612f;
-			Rise(camera.fov, 128 * dt, 80);
+			Rise(camera.fov, 200 * dt, 85);
 		}
 		else
 		{
 			WALK_SPEED = 4.317f;
-			Fall(camera.fov, 128 * dt, 70);
+			Fall(camera.fov, 100 * dt, 70);
+			Rise(SprintBar, dt, MaxSprintTime);
 		}
 
 		eyeLevel = 1.62f;
+	}
+
+	if (SprintBar < 0)
+	{
+		ISound* sound = engine->play2D("Assets/Media/Panting.mp3", false, true);
+		if (sound)
+		{
+			sound->setVolume(0.2f);
+			sound->setIsPaused(false);
+		}
+		Sprint = false;
+	}
+	else if (SprintBar == MaxSprintTime)
+	{
+		Sprint = true;
 	}
 
 	Vector3 hVel;
@@ -149,11 +170,13 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 
 	if (hVel.LengthSquared() > 0)
 	{
+		run = true;
 		hVel.Normalize() *= WALK_SPEED;
 		velocity.x = hVel.x; velocity.z = hVel.z;
 	}
 	else
 	{
+		run = false;
 		velocity.x += -velocity.x * dt * 16;
 		velocity.z += -velocity.z * dt * 16;
 		if (velocity.x > -0.1f && velocity.x < 0.1f)
@@ -164,14 +187,14 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 
 	UpdateVelocity(dt);
 	if (!mount)
-		if(myKeys[' '] && !jump && (velocity.y > -2.f && velocity.y <= 0))
+		if (myKeys[' '] && !jump && (velocity.y > -2.f && velocity.y <= 0))
 		{
 			jump = true;
 			velocity.y = 8.25f;
 		}
 
 	position += velocity * dt;
-	RespondToCollision(object);
+	RespondToCollision(collisionBlockList);
 
 	if (mount)
 	{
@@ -187,7 +210,7 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 		if (myKeys['d'])
 			hVel += right * WALK_SPEED * 0.333f;
 
-			mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
+		mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
 
 		if (mount->jump && mount->velocity.y == 0)
 			mount->jump = false;
@@ -203,7 +226,7 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 		velocity.SetZero();
 	}
 	else if (velocity.y == 0)
-	{	
+	{
 		if (!myKeys['S'])
 		{
 			float step = 0.f;
@@ -216,7 +239,7 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 			if (stepRate >= step)
 			{
 				hVel.Set(velocity.x, 0, velocity.z);
-				if( hVel.LengthSquared() > 0.25f*0.25f)
+				if (hVel.LengthSquared() > 0.25f*0.25f)
 				{
 					stepRate = 0.f;
 
@@ -245,7 +268,7 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 				sound->setVolume(0.75f);
 				sound->setIsPaused(false);
 			}
-			reduceHealth(-initialVel.y/3);
+			reduceHealth(-initialVel.y / 3);
 		}
 	}
 
@@ -271,23 +294,23 @@ void Player::Update(double dt, const vector<Block*>&object, bool RestrictMovemen
 
 float Player::get_apparentHP(float upon)
 {
-	return (apparentHealth/100)*upon;
+	return (apparentHealth / 100)*upon;
 }
 float Player::get_trueHP(float upon)
 {
-	return (trueHealth/100)*upon;
+	return (trueHealth / 100)*upon;
 }
 void Player::reduceHealth(float reduction)
 {
 	trueHealth -= reduction;
 
-	if(trueHealth < 1)
+	if (trueHealth < 1)
 		trueHealth = 0;
 }
 void Player::recoverHealth(float recovery)
 {
 	trueHealth += recovery;
 
-	if(trueHealth > 100)
+	if (trueHealth > 100)
 		trueHealth = 100;
 }

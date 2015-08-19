@@ -37,7 +37,7 @@ CInventory::~CInventory(void)
 {
 }
 
-void CInventory::Update()
+void CInventory::Update(double dt)
 {
 	if (Application::mouseScroll != 0)
 	{
@@ -50,6 +50,9 @@ void CInventory::Update()
 		if (Application::IsKeyPressed('1' + i))
 			Select(i + 1);
 	}
+
+	if (selectedSlot->item)
+		selectedSlot->item->Update(dt);
 }
 
 bool CInventory::Select(int select)

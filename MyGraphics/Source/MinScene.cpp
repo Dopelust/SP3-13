@@ -82,12 +82,14 @@ void MinScene::Init()
 
 	for (unsigned i = 0; i < 20; ++i)
 	{
+		Living* entity = new Living();
 		unsigned id = rand() % 4;
+		entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 5);
+		entity->hOrientation = rand() % 360;
+
 		if (id == 3)
 		{
-			Horse* entity = new Horse();
-			entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 5);
-			entity->hOrientation = rand() % 360;
+			entity->climbHeight = 1;
 			entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
 			entity->collision.centre.Set(0, 1.05f, 0);
 			entity->id = id;
@@ -95,9 +97,6 @@ void MinScene::Init()
 			continue;
 		}
 		
-		Living* entity = new Living();
-		entity->position.Set(rand()%101 - 50, 1, rand() % 101 - 5);
-		entity->hOrientation = rand() % 360;
 		entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 		entity->collision.centre.Set(0, 0.9f, 0);
 		entity->id = id;
@@ -106,6 +105,14 @@ void MinScene::Init()
 
 	InTheZone = false;
 	ZoneBar = MaxZoneTime = 12;
+
+	CBow* Bow = new CBow();
+	Bow->mesh = meshList["BOW"];
+	player.inventory.slot[1]->item = Bow;
+
+	/*CKnife* Knife = new CKnife();
+	Knife->mesh = meshList["KNIFE"];
+	player.inventory.slot[0]->item = Knife;*/
 }
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
@@ -277,22 +284,16 @@ Vector3 MinScene::PositionToIndex(Vector3 pos)
 
 void MinScene::ObtainBlockList()
 {	
-	unsigned count = LivingThings.size();
-	for (unsigned i = 0; i < count; ++i)
-		LivingThings[i]->collisionBlockList.clear();
-	player.collisionBlockList.clear();
-
 	LivingThings.clear();
 	alphaBlockList.clear();
 	blockList.clear();
 
-	count = worldLivingThings.size();
+	unsigned count = worldLivingThings.size();
 	for (unsigned i = 0; i < count; ++i)
 	{
 		if (camera->position.DistSquared(worldLivingThings[i]->position) < RenderDist * RenderDist)
 			LivingThings.push_back(worldLivingThings[i]);
 	}
-	count = LivingThings.size();
 
 	Vector3 index = PositionToIndex(camera->position);
 	int zBegin = Math::Max(0, (int)(index.z - RenderDist));
@@ -323,15 +324,6 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
-
-						for (unsigned i = 0; i < count; ++i)
-						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
-						}
-
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -351,15 +343,6 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
-
-						for (unsigned i = 0; i < count; ++i)
-						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
-						}
-
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -379,15 +362,6 @@ void MinScene::ObtainBlockList()
 
 						if (worldBlockList[x][y][z]->type == Block::TRANS)
 							alphaBlockList.push_back(worldBlockList[x][y][z]);
-
-						for (unsigned i = 0; i < count; ++i)
-						{
-							if (LivingThings[i]->position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
-						}
-
-						if (player.position.DistSquared(worldBlockList[x][y][z]->position) < 10 * 10)
-							player.collisionBlockList.push_back(worldBlockList[x][y][z]);
 					}
 				}
 			}
@@ -397,173 +371,65 @@ void MinScene::ObtainBlockList()
 	sort(alphaBlockList.begin(), alphaBlockList.end(), IsMoreThan);
 }
 
-void MinScene::Update(double dt)
+void MinScene::PartitionCollision()
 {
-	SceneBase::Update(dt);
-	if (player.noClip)
-		blockInventory.Update();
-	else
-		player.inventory.Update();
-
-	static bool bLButtonPressed = false;
-
-	if (!bLButtonPressed && Application::IsKeyPressed('L'))
-	{
-		bLButtonPressed = true;
-
-		if (!InTheZone && ZoneBar == MaxZoneTime)
-		{
-			ISound* sound = engine->play2D("Assets/Media/unravel.wav", false, true);
-			if (sound)
-			{
-				sound->setVolume(0.2f);
-				sound->setIsPaused(false);
-			}
-			sound = engine->play2D("Assets/Media/SlowMoIn.mp3", false, true);
-			if (sound)
-			{
-				sound->setVolume(0.3f);
-				sound->setIsPaused(false);
-			}
-			InTheZone = true;
-		}
-	}
-	else if (bLButtonPressed && !Application::IsKeyPressed('L'))
-		bLButtonPressed = false;
-	
-	if (InTheZone)
-	{
-		ZoneBar -= dt;
-		dt *= 0.25f;
-
-		if (ZoneBar < 0)
-		{
-			InTheZone = false;
-			ZoneBar = 0.f;
-
-			ISound* sound = engine->play2D("Assets/Media/SlowMoOut.mp3", false, true);
-			if (sound)
-			{
-				sound->setVolume(0.25f);
-				sound->setIsPaused(false);
-			}
-		}
-
-		Color color(0.75f, 0.75f, 1);
-		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
-		glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
-	}
-	else
-	{
-		ZoneBar += dt;
-		ZoneBar = ZoneBar > MaxZoneTime ? MaxZoneTime : ZoneBar;
-		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
-	}
-
-	/***************************************************************************************************/
-
-	if (elapsedTime >= (nextUpdate*0.5f))
-	{
-		ObtainBlockList();
-		nextUpdate++;
-	}
-
-	static bool bNButtonPressed = false;
-
-	if (!bNButtonPressed && Application::IsKeyPressed(VK_TAB))
-	{
-		player.noClip = player.noClip ? false : true;
-		bNButtonPressed = true;
-	}
-	else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
-		bNButtonPressed = false;
-
-	player.Update(dt, blockList, false);
-	soundUpdate(player);
-
 	unsigned count = LivingThings.size();
 	for (unsigned i = 0; i < count; ++i)
-		LivingThings[i]->Update(dt, false);
-
-	lights[0].position.Set(camera->position.x, 4, camera->position.z);
-
-	static bool bLMouseButtonPressed = false;
-
-	if (!bLMouseButtonPressed && Application::IsMousePressed(0))
 	{
-		bLMouseButtonPressed = true;
+		LivingThings[i]->collisionBlockList.clear();
 
-		if (selectedBlock)
+		Vector3 Position = PositionToIndex(LivingThings[i]->position);
+		for (int x = Position.x - 1; x < Position.x + 1; ++x)
 		{
-			if (RemoveBlock(selectedBlock))
+			for (int y = Position.y - 1; y < Position.y + 1; ++y)
 			{
-				ISound * sound = engine->play2D(Block::getSound(selectedBlock->id), false, true);
-				if (sound)
+				for (int z = Position.z - 1; z < Position.z + 1; ++z)
 				{
-					sound->setVolume(0.4f);
-					sound->setIsPaused(false);
+					if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+					{
+						if (worldBlockList[x][y][z])
+							LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+					}
 				}
 			}
 		}
 	}
-	else if ((bLMouseButtonPressed && !Application::IsMousePressed(0)))
+
+	player.collisionBlockList.clear();
+	Vector3 Position = PositionToIndex(player.position);
+	for (int x = Position.x - 1; x < Position.x + 1; ++x)
 	{
-		bLMouseButtonPressed = false;
-	}
-
-	tooltip.clear();
-	Living* selectedEntity = NULL;
-	selectedBlock = NULL;
-
-	float dist = INT_MAX;
-	Vector3 view = (camera->target - camera->position).Normalized();
-
-	for (unsigned i = 0; i < count; ++i)
-	{
-		Block Blk(LivingThings[i]->position, LivingThings[i]->collision.centre, LivingThings[i]->collision.hitbox);
-		float rayDist = Blk.collisionWithRay(camera->position, view);
-		if (rayDist >= 0 && rayDist <= 5)
+		for (int y = Position.y - 1; y < Position.y + 1; ++y)
 		{
-			if (rayDist < dist)
+			for (int z = Position.z - 1; z < Position.z + 1; ++z)
 			{
-				selectedEntity = LivingThings[i];
-				dist = rayDist;
-				
-				if (LivingThings[i]->id == 3)
-					tooltip = "Press [E] to mount horse.";
+				if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+				{
+					if (worldBlockList[x][y][z])
+						player.collisionBlockList.push_back(worldBlockList[x][y][z]);
+				}
 			}
 		}
 	}
-	count = blockList.size();
-	for (unsigned i = 0; i < count; ++i)
+}
+
+void MinScene::Update_LevelEditor(double dt)
+{
+	blockInventory.Update();
+
+	static bool bMMouseButtonPressed = false;
+
+	if (!bMMouseButtonPressed && Application::IsMousePressed(2))
 	{
-		float rayDist = blockList[i]->collisionWithRay(camera->position, view);
-		if (rayDist >= 0 && rayDist <= 5)
-		{
-			if (rayDist < dist)
-			{
-				selectedBlock = blockList[i]; selectedEntity = NULL;
-				dist = rayDist;
-			}
-		}
+		bMMouseButtonPressed = true;
+
+		if (selectedBlock)
+			blockInventory.setBlock(*selectedBlock);
 	}
-
-	static bool bEButtonPressed = false;
-
-	if (!bEButtonPressed && Application::IsKeyPressed('E'))
+	else if (bMMouseButtonPressed && !Application::IsMousePressed(2))
 	{
-		bEButtonPressed = true;
-
-		if (player.mount)
-			player.mount = NULL;
-		else if (selectedEntity && selectedEntity->id == 3)
-			player.mount = selectedEntity;
+		bMMouseButtonPressed = false;
 	}
-	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
-		bEButtonPressed = false;
-
-	if (player.mount)
-		tooltip = "Press [E] to dismount.";
 
 	static bool bRMouseButtonPressed = false;
 	static float bRMouseButtonElapsed = 0.f;
@@ -576,6 +442,7 @@ void MinScene::Update(double dt)
 		if (selectedBlock)
 		{
 			bool playSound = false;
+			Vector3 view = (camera->target - camera->position).Normalized();
 
 			Vector3 newBlockPosition = PositionToIndex(selectedBlock->position);
 			int face = selectedBlock->RayCollisionFace(camera->position, view);
@@ -649,19 +516,189 @@ void MinScene::Update(double dt)
 	if (bRMouseButtonPressed)
 		bRMouseButtonElapsed += dt;
 
-	static bool bMMouseButtonPressed = false;
+	static bool bLMouseButtonPressed = false;
 
-	if (!bMMouseButtonPressed && Application::IsMousePressed(2))
+	if (!bLMouseButtonPressed && Application::IsMousePressed(0))
 	{
-		bMMouseButtonPressed = true;
+		bLMouseButtonPressed = true;
 
 		if (selectedBlock)
-			blockInventory.setBlock(*selectedBlock);
+		{
+			if (RemoveBlock(selectedBlock))
+			{
+				ISound * sound = engine->play2D(Block::getSound(selectedBlock->id), false, true);
+				if (sound)
+				{
+					sound->setVolume(0.4f);
+					sound->setIsPaused(false);
+				}
+
+				selectedBlock = NULL;
+			}
+		}
 	}
-	else if (bMMouseButtonPressed && !Application::IsMousePressed(2))
+	else if ((bLMouseButtonPressed && !Application::IsMousePressed(0)))
 	{
-		bMMouseButtonPressed = false;
+		bLMouseButtonPressed = false;
 	}
+}
+void MinScene::Update_Game(double dt)
+{
+	player.inventory.Update(dt);
+
+	if (player.inventory.selectedSlot->item)
+	{
+		if (player.inventory.selectedSlot->item->use)
+		{
+			GenerateArrow(player);
+			player.inventory.selectedSlot->item->use = false;
+		}
+	}
+	
+	static bool bLButtonPressed = false;
+
+	if (!bLButtonPressed && Application::IsKeyPressed('L'))
+	{
+		bLButtonPressed = true;
+
+		if (!InTheZone && ZoneBar == MaxZoneTime)
+		{
+			ISound* sound = engine->play2D("Assets/Media/unravel.wav", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.2f);
+				sound->setIsPaused(false);
+			}
+			sound = engine->play2D("Assets/Media/SlowMoIn.mp3", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.3f);
+				sound->setIsPaused(false);
+			}
+			InTheZone = true;
+		}
+	}
+	else if (bLButtonPressed && !Application::IsKeyPressed('L'))
+		bLButtonPressed = false;
+}
+void MinScene::Update(double dt)
+{
+	SceneBase::Update(dt);
+
+	if (elapsedTime >= (nextUpdate*0.5f))
+	{
+		ObtainBlockList();
+		nextUpdate++;
+	}
+	PartitionCollision();
+
+	if (InTheZone)
+	{
+		ZoneBar -= dt;
+		dt *= 0.25f;
+
+		if (ZoneBar < 0)
+		{
+			InTheZone = false;
+			ZoneBar = 0.f;
+
+			ISound* sound = engine->play2D("Assets/Media/SlowMoOut.mp3", false, true);
+			if (sound)
+			{
+				sound->setVolume(0.25f);
+				sound->setIsPaused(false);
+			}
+		}
+
+		Color color(0.65f, 0.65f, 1);
+		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+		glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+	}
+	else
+	{
+		ZoneBar += dt;
+		ZoneBar = ZoneBar > MaxZoneTime ? MaxZoneTime : ZoneBar;
+		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+	}
+
+	static bool bNButtonPressed = false;
+
+	if (!bNButtonPressed && Application::IsKeyPressed(VK_TAB))
+	{
+		if (!InTheZone)
+			player.noClip = player.noClip ? false : true;
+		bNButtonPressed = true;
+	}
+	else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
+		bNButtonPressed = false;
+
+	player.Update(dt, false);
+	soundUpdate(player);
+
+	unsigned count = LivingThings.size();
+	for (unsigned i = 0; i < count; ++i)
+		LivingThings[i]->Update(dt, false);
+
+	lights[0].position.Set(camera->position.x, 4, camera->position.z);
+
+	tooltip.clear();
+	Living* selectedEntity = NULL;
+	selectedBlock = NULL;
+
+	float dist = INT_MAX;
+	Vector3 view = (camera->target - camera->position).Normalized();
+
+	for (unsigned i = 0; i < count; ++i)
+	{
+		Block Blk(LivingThings[i]->position, LivingThings[i]->collision.centre, LivingThings[i]->collision.hitbox);
+		float rayDist = Blk.collisionWithRay(camera->position, view);
+		if (rayDist >= 0 && rayDist <= 5)
+		{
+			if (rayDist < dist)
+			{
+				selectedEntity = LivingThings[i];
+				dist = rayDist;
+				
+				if (LivingThings[i]->id == 3)
+					tooltip = "Press [E] to mount horse.";
+			}
+		}
+	}
+	count = blockList.size();
+	for (unsigned i = 0; i < count; ++i)
+	{
+		float rayDist = blockList[i]->collisionWithRay(camera->position, view);
+		if (rayDist >= 0 && rayDist <= 5)
+		{
+			if (rayDist < dist)
+			{
+				selectedBlock = blockList[i]; selectedEntity = NULL;
+				dist = rayDist;
+			}
+		}
+	}
+
+	static bool bEButtonPressed = false;
+
+	if (!bEButtonPressed && Application::IsKeyPressed('E'))
+	{
+		bEButtonPressed = true;
+
+		if (player.mount)
+			player.mount = NULL;
+		else if (selectedEntity && selectedEntity->id == 3)
+			player.mount = selectedEntity;
+	}
+	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
+		bEButtonPressed = false;
+
+	if (player.mount)
+		tooltip = "Press [E] to dismount.";
+
+	if (player.noClip)
+		Update_LevelEditor(dt);
+	else
+		Update_Game(dt);
 
 	count = particleList.size();
 	for (int i = 0; i < count; ++i)
@@ -687,6 +724,43 @@ void MinScene::Update(double dt)
 	}
 	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
 		bGButtonPressed = false;
+}
+Living* MinScene::FetchEntity()
+{
+	for (unsigned i = 0; i < worldLivingThings.size(); ++i)
+	{
+		if (!worldLivingThings[i]->IsActive())
+		{
+			worldLivingThings[i]->SetActive(true);
+			worldLivingThings[i]->lifetime = 0.f;
+
+			return worldLivingThings[i];
+		}
+	}
+
+	Living* LivingThing = new Living();
+	LivingThing->SetActive(true);
+	worldLivingThings.push_back(LivingThing);
+	LivingThings.push_back(LivingThing);
+	return LivingThing;
+}
+bool MinScene::GenerateArrow(Entity & source)
+{
+	Arrow* arrow = new Arrow();
+	arrow->position = source.position; arrow->position.y += player.eyeLevel;
+	arrow->velocity.SphericalToCartesian(source.hOrientation, source.vOrientation);
+	arrow->velocity *= 16;
+	arrow->hOrientation = source.hOrientation;
+	arrow->vOrientation = source.vOrientation;
+	arrow->climbHeight = 0.f;
+	arrow->id = 4;
+	arrow->collision.hitbox.Set(0.75f, 0.75f, 0.75f);
+	arrow->collision.centre.Set(0, 0.75f * 0.5f, 0);
+
+	LivingThings.push_back(arrow);
+	worldLivingThings.push_back(arrow);
+
+	return true;
 }
 bool MinScene::RemoveBlock(Block* block)
 {
@@ -749,14 +823,26 @@ void MinScene::Render()
 	RenderScene();
 	glUniform1i(m_parameters[U_FOG_ENABLED], 0);
 
-	viewStack.LoadIdentity();
-	projection.SetToOrtho(0, Application::m_width, 0, Application::m_height, -80, 80);
-	projectionStack.LoadMatrix(projection);
-
-	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
-	glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
 
 	glDisable(GL_DEPTH_TEST);
+	//projection.SetToPerspective(30, 16.f / 9.f, 0.1f, 10000.f);
+	//projectionStack.LoadMatrix(projection);
+	glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
+	viewStack.LoadIdentity();
+	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
+
+	if (player.inventory.selectedSlot->item)
+	{
+		modelStack.PushMatrix();
+		player.inventory.selectedSlot->item->RenderItem(modelStack);
+		RenderMesh(player.inventory.selectedSlot->item->mesh, true);
+		modelStack.PopMatrix();
+	}
+
+	projection.SetToOrtho(0, Application::m_width, 0, Application::m_height, -80, 80);
+	projectionStack.LoadMatrix(projection);
+	glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
+
 	Render2D();
 	glEnable(GL_DEPTH_TEST);
 }
@@ -772,6 +858,7 @@ void MinScene::RenderEntities_GPass()
 		meshList["R_LEG"] };
 	vector<Mtx44> MMat[6]; //Head, Body, Arm, Leg
 	vector<Mtx44> HorseMMat;
+	vector<Mtx44> ArrowMMat;
 	float rotation = sin(Math::RadianToDegree(elapsedTime * 0.1f)) * 30;
 
 	unsigned count = LivingThings.size();
@@ -784,9 +871,16 @@ void MinScene::RenderEntities_GPass()
 		modelStack.PushMatrix();
 		modelStack.Translate(LivingThings[i]->position);
 		modelStack.Rotate(LivingThings[i]->hOrientation, 0, 1, 0);
+
 		if (LivingThings[i]->id == 3)
 		{
 			HorseMMat.push_back(modelStack.Top());
+			modelStack.PopMatrix();
+			continue;
+		}
+		if (LivingThings[i]->id == 4)
+		{
+			ArrowMMat.push_back(modelStack.Top());
 			modelStack.PopMatrix();
 			continue;
 		}
@@ -833,6 +927,8 @@ void MinScene::RenderEntities_GPass()
 
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
+	if (ArrowMMat.size() > 0)
+		RenderInstance(meshList["ARROW"], ArrowMMat.size(), &ArrowMMat[0], true);
 }
 
 void MinScene::RenderEntities()
@@ -849,6 +945,7 @@ void MinScene::RenderEntities()
 		meshList["R_LEG"] };
 	vector<Mtx44> MMat[3][6]; //Head, Body, Arm, Leg
 	vector<Mtx44> HorseMMat;
+	vector<Mtx44> ArrowMMat;
 	float rotation = sin(Math::RadianToDegree(elapsedTime * 0.1f)) * 30;
 
 	unsigned count = LivingThings.size();
@@ -864,6 +961,14 @@ void MinScene::RenderEntities()
 		if (LivingThings[i]->id == 3)
 		{
 			HorseMMat.push_back(modelStack.Top());
+			modelStack.PopMatrix();
+			continue;
+		}
+		else if (LivingThings[i]->id == 4)
+		{
+			modelStack.Rotate(180, 0, 1, 0);
+			modelStack.Rotate(LivingThings[i]->vOrientation + 90, 1, 0, 0);
+			ArrowMMat.push_back(modelStack.Top());
 			modelStack.PopMatrix();
 			continue;
 		}
@@ -915,6 +1020,8 @@ void MinScene::RenderEntities()
 	
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
+	if (ArrowMMat.size() > 0)
+		RenderInstance(meshList["ARROW"], ArrowMMat.size(), &ArrowMMat[0], true);
 }
 
 void MinScene::RenderBlocks_GPass()
@@ -1301,17 +1408,36 @@ void MinScene::Render2D()
 
 	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + MaxZoneTime * 20 * 0.5f, 450, 0);
-	modelStack.Scale(MaxZoneTime * 20, 16, 1);
+	modelStack.Translate(8 + 200 * 0.5f, 450, 0);
+	modelStack.Scale(200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + ZoneBar * 20 * 0.5f, 450, 0);
-	modelStack.Scale(ZoneBar * 20, 16, 1);
+	modelStack.Translate(8 + (ZoneBar/MaxZoneTime) * 200 * 0.5f, 450, 0);
+	modelStack.Scale((ZoneBar / MaxZoneTime) * 200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	Color color(1,1,0);
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + 200 * 0.5f, 350, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f, 350, 0);
+	modelStack.Scale((player.SprintBar / player.MaxSprintTime) * 200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
 	meshList["QUAD"]->textureID = NULL;
+	
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 }
 
 bool MinScene::Save(const char * filepath)

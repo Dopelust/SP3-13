@@ -41,10 +41,11 @@ public:
 	virtual void RespondToCollision(const vector<Block*>&object);
 	virtual void RenderObject(MS& modelStack);
 
+	float climbHeight;
+
 protected:
 	bool active;
 	bool sneak;
-	float climbHeight;
 	float stepRate;
 	char* stepSound;
 };

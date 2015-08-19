@@ -13,7 +13,7 @@ This is a weapon class to create weapons.(Name,Damage,Type)
 #include "Item.h"
 using namespace std;
 
-class CWeapon : CItem
+class CWeapon : public CItem
 {
 private:
 	unsigned DMG;
@@ -28,5 +28,6 @@ public:
 	unsigned getDamage();
 	unsigned getAmmo();
 
-	virtual void Attack();
+	virtual void Update(double dt);
+	virtual void RenderItem(MS& modelStack);
 };

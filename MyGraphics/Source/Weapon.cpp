@@ -28,7 +28,11 @@ unsigned CWeapon::getAmmo()
 	return ammo;
 }
 
-void CWeapon::Attack()
+void CWeapon::Update(double dt)
+{
+}
+
+void CWeapon::RenderItem(MS& modelStack)
 {
 }
 

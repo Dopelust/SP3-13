@@ -22,7 +22,7 @@ public:
 	CInventory(void);
 	~CInventory(void);
 
-	void Update();
+	void Update(double dt);
 	bool Select(int select);
 	void Scroll(int scroll);
 

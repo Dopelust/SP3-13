@@ -13,6 +13,8 @@ Header file for the Project/SP Scene.
 #include "Frustum.h"
 #include "Living.h"
 #include "SceneShadow.h"
+#include "Bow.h"
+#include "Knife.h"
 #include <map>
 
 #include <irrKlang.h>
@@ -34,6 +36,11 @@ public:
 
 	void Init();
 	void Update(double dt);
+	void Update_LevelEditor(double dt);
+	void Update_Game(double dt);
+
+	Living* FetchEntity();
+	bool GenerateArrow(Entity& source);
 	bool RemoveBlock(Block* block);
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
 	bool FetchStair(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % (NumBlocks - 3) + 3, int orientation = 0, int look = 0);
@@ -60,6 +67,7 @@ private:
 	vector<Block*> alphaBlockList;
 	vector<Particle> particleList;
 	void ObtainBlockList();
+	void PartitionCollision();
 	BlockFactory blockInventory;
 
 	void RenderBlocks();

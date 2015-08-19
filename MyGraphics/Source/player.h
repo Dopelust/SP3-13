@@ -38,7 +38,7 @@ public:
 	float eyeLevel;
 	
 	void Init();
-	void Update(double dt, const vector<Block*>&object, bool RestrictMovement);
+	void Update(double dt, bool RestrictMovement);
 	void UpdateVelocity(double dt);
 
 	float apparentHealth;
@@ -50,6 +50,11 @@ public:
 
 	bool myKeys[255];
 	bool noClip;
+
+	float SprintBar;
+	float MaxSprintTime;
+	bool Sprint;
+	bool run;
 };
 
 #endif

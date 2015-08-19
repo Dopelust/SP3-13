@@ -10,6 +10,10 @@ public:
 	CBow(void);
 	~CBow(void);
 
-	void Attack();
+	Vector3 translation;
+	float Charge;
+
+	void Update(double dt);
+	void RenderItem(MS& modelStack);
 };
 

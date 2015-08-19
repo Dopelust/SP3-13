@@ -10,6 +10,7 @@ public:
 	CKnife(void);
 	~CKnife(void);
 
-	void Attack();
+	void Update(double dt);
+	void RenderItem(MS& modelStack);
 };
 
