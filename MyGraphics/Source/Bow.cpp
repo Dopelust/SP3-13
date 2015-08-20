@@ -16,7 +16,7 @@ void CBow::Update(double dt)
 		Rise(Charge, dt, 1);
 	else
 	{
-		if (Charge > 0.2f && !use)
+		if (Charge > 0.3f && !use)
 			use = true;
 		else
 		{

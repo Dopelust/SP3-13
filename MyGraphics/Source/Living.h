@@ -21,5 +21,8 @@ public:
 
 	void Update(double dt, bool RestrictMovement);
 	void RespondToCollision(const vector<Block*>&object);
+
+	Vector3 relativePosition;
+	float relativeOrientation;
 };
 #endif

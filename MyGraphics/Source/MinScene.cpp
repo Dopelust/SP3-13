@@ -89,7 +89,6 @@ void MinScene::Init()
 
 		if (id == 3)
 		{
-			entity->climbHeight = 1;
 			entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
 			entity->collision.centre.Set(0, 1.05f, 0);
 			entity->id = id;
@@ -393,7 +392,7 @@ void MinScene::PartitionCollision()
 		{
 			LivingThings[j][i]->collisionBlockList.clear();
 
-			if (LivingThings[j][i]->IsActive())
+			if (LivingThings[j][i]->IsActive() && !LivingThings[j][i]->IsDead())
 			{
 				Vector3 Position = PositionToIndex(LivingThings[j][i]->position);
 				for (int x = Position.x - 1; x < Position.x + 1; ++x)
@@ -659,16 +658,16 @@ void MinScene::Update(double dt)
 	{
 		unsigned count = LivingThings[j].size();
 
-		for (unsigned i = 0; i < count; ++i)
+		for (int i = 0; i < count; ++i)
 		{
 			if (LivingThings[j][i]->IsDead())
 				continue;
 
 			LivingThings[j][i]->Update(dt, false);
 
-			if (j == 4) //If Arrows,
+			if (j == 4 && !LivingThings[j][i]->IsDead()) //If Arrows,
 			{
-				Block Arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
+				Block arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
 				for (unsigned j2 = 0; j2 < NumEntities; ++j2) //Check with the other entities
 				{
 					if (j2 == 4) //Which are not arrows
@@ -678,19 +677,37 @@ void MinScene::Update(double dt)
 					for (unsigned k = 0; k < count2; ++k)
 					{
 						Block NPC(LivingThings[j2][k]->position, LivingThings[j2][k]->collision.centre, LivingThings[j2][k]->collision.hitbox);
-						if (Block::checkCollision(Arrow, NPC))
+						if (Block::checkCollision(arrow, NPC)) //If arrow collide with entity
 						{
-							LivingThings[j2][k]->Knockback(LivingThings[j][i]->velocity);
-							LivingThings[j2][k]->StuckedArrows.push_back(LivingThings[j][i]);
-							LivingThings[j2][k]->StuckedArrowsRelativePosition.push_back(LivingThings[j][i]->position - LivingThings[j2][k]->position);
+							LivingThings[j2][k]->Knockback(LivingThings[j][i]->velocity); //Knockback entity
 
-							LivingThings[j][i]->SetDead(true);
+							Arrow* StuckedArrow = dynamic_cast<Arrow*>(LivingThings[j][i]); //Stuck arrow to entity
+							StuckedArrow->relativeOrientation = LivingThings[j2][k]->hOrientation;
+							StuckedArrow->relativePosition = LivingThings[j][i]->position - LivingThings[j2][k]->position;
+							LivingThings[j2][k]->StuckedArrows.push_back(StuckedArrow);
+
+							LivingThings[j][i]->SetDead(true); 
 							break;
 						}
 					}
 
 					if (LivingThings[j][i]->IsDead())
+					{
+						LivingThings[j].erase(LivingThings[j].begin() + i); //Remove from list
+
+						count2 = worldLivingThings[j].size();
+						for (unsigned k = 0; k < count2; ++k)
+						{
+							if (worldLivingThings[j][k] == LivingThings[j][i])
+							{
+								worldLivingThings[j].erase(worldLivingThings[j].begin() + k); //Remove from world list
+								break;
+							}
+						}
+
+						--i;
 						break;
+					}
 				}
 			}
 		}
@@ -747,9 +764,15 @@ void MinScene::Update(double dt)
 		bEButtonPressed = true;
 
 		if (player.mount)
+		{
+			player.mount->climbHeight = 0.5f;
 			player.mount = NULL;
+		}
 		else if (selectedEntity && selectedEntity->id == 3)
+		{
 			player.mount = selectedEntity;
+			player.mount->climbHeight = 1;
+		}
 	}
 	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
 		bEButtonPressed = false;
@@ -918,7 +941,7 @@ void MinScene::Render()
 		RenderMesh(player.getSelectedItem()->mesh, true);
 		if (player.getSelectedItem()->itemID == CItem::BOW)
 		{
-			if (player.getSelectedItem()->getCharge() > 0.2f)
+			if (player.getSelectedItem()->getCharge() > 0.3f)
 			{
 				modelStack.Rotate(180, 0, 1, 0);
 				modelStack.Rotate(90, 0, 0, 1);
@@ -1052,6 +1075,20 @@ void MinScene::RenderEntities()
 
 			modelStack.PushMatrix();
 			modelStack.Translate(LivingThings[j][i]->position);
+			if (j != 4)
+			{
+				unsigned count2 = LivingThings[j][i]->StuckedArrows.size();
+				for (unsigned k = 0; k < count2; ++k)
+				{
+					modelStack.PushMatrix();
+					modelStack.Rotate(LivingThings[j][i]->hOrientation - LivingThings[j][i]->StuckedArrows[k]->relativeOrientation, 0, 1, 0);
+					modelStack.Translate(LivingThings[j][i]->StuckedArrows[k]->relativePosition);
+					modelStack.Rotate(LivingThings[j][i]->StuckedArrows[k]->hOrientation, 0, 1, 0);
+					modelStack.Rotate(-LivingThings[j][i]->StuckedArrows[k]->vOrientation, 1, 0, 0);
+					ArrowMMat.push_back(modelStack.Top());
+					modelStack.PopMatrix();
+				}
+			}
 			modelStack.Rotate(LivingThings[j][i]->hOrientation, 0, 1, 0);
 
 			if (j == 3)

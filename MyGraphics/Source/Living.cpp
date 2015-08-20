@@ -25,15 +25,9 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	position += velocity * dt;
 	RespondToCollision(this->collisionBlockList);
-
-	unsigned count = StuckedArrows.size();
-	for (unsigned i = 0; i < count; ++i)
-	{
-		StuckedArrows[i]->position = position + StuckedArrowsRelativePosition[i];
-	}
 }
 
-Arrow::Arrow()
+Arrow::Arrow() : relativePosition(0,0,0), relativeOrientation(0)
 {
 }
 

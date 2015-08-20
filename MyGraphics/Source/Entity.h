@@ -13,7 +13,7 @@
 
 using namespace::std;
 
-class Living;
+class Arrow;
 
 class Entity
 {
@@ -51,9 +51,7 @@ public:
 	float climbHeight;
 
 	void Knockback(Vector3 dir);
-	vector<Living*> StuckedArrows;
-	vector<Vector3> StuckedArrowsRelativePosition;
-
+	vector<Arrow*> StuckedArrows;
 protected:
 	bool active;
 	bool dead;
