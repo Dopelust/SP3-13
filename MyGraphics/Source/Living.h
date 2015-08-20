@@ -10,7 +10,7 @@ public:
 	~Living();
 
 	unsigned id;
-	void Update(double dt, bool RestrictMovement);
+	virtual void Update(double dt, bool RestrictMovement);
 };
 
 class Arrow : public Living
@@ -19,6 +19,7 @@ public:
 	Arrow();
 	~Arrow();
 
+	void Update(double dt, bool RestrictMovement);
 	void RespondToCollision(const vector<Block*>&object);
 };
 #endif

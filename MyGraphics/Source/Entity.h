@@ -9,7 +9,11 @@
 #include <string>
 #include <vector>
 
+#define NumEntities 5 //Enemy1, Enemy2, Enemy3, Horse, Arrow
+
 using namespace::std;
+
+class Living;
 
 class Entity
 {
@@ -36,6 +40,9 @@ public:
 	bool IsActive();
 	void SetActive(bool active);
 
+	bool IsDead();
+	void SetDead(bool dead);
+
 	virtual void Update(double dt);
 	virtual void Update(double dt, const vector<Block*>&object, bool RestrictMovement);
 	virtual void RespondToCollision(const vector<Block*>&object);
@@ -43,8 +50,13 @@ public:
 
 	float climbHeight;
 
+	void Knockback(Vector3 dir);
+	vector<Living*> StuckedArrows;
+	vector<Vector3> StuckedArrowsRelativePosition;
+
 protected:
 	bool active;
+	bool dead;
 	bool sneak;
 	float stepRate;
 	char* stepSound;

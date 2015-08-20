@@ -36,13 +36,13 @@ public:
 	void Update_LevelEditor(double dt);
 	void Update_Game(double dt);
 
-	Living* FetchEntity();
+	Living* FetchEntity(unsigned id);
 	bool GenerateArrow(Entity& source, float strength);
 	bool RemoveBlock(Block* block);
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
 	bool FetchStair(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % (NumBlocks - 3) + 3, int orientation = 0, int look = 0);
 	bool SpawnParticle(Vector3 pos, unsigned id);
-	void UpdateInput (const unsigned char key);
+	void UpdateInput(const unsigned char key);
 
 	void Render();
 	void Exit();
@@ -54,8 +54,8 @@ public:
 	static Vector3 PositionToIndex(Vector3 pos);
 
 private:
-	vector<Living*> LivingThings;
-	vector<Living*> worldLivingThings;
+	vector<Living*> LivingThings[NumEntities];
+	vector<Living*> worldLivingThings[NumEntities];
 
 	unsigned worldBlocks;
 	Block* selectedBlock;

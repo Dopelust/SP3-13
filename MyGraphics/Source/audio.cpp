@@ -21,6 +21,7 @@ int MinScene::soundInit()
 {
 	engine = createIrrKlangDevice();
 	engine->setSoundVolume(1.f);
+	engine->setDefault3DSoundMinDistance(1);
 
    if (!engine)
       return 0;
@@ -38,9 +39,8 @@ int MinScene::soundUpdate(Player player)
 {
 	Vector3 direction;
 	direction.SphericalToCartesian(player.hOrientation - 180, player.vOrientation);
-
 	engine->setListenerPosition(vec3df(player.position.x,player.position.y,player.position.z), vec3df(direction.x, direction.y, direction.z));
-
+	
 	return 0;
 }
 

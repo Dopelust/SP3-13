@@ -1,6 +1,13 @@
 #include "Entity.h"
+#include <irrKlang.h>
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f)
+#pragma comment(lib, "irrKlang.lib")
+
+using namespace irrklang;
+
+extern ISoundEngine * engine;
+
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false)
 {
 	active = true;
 }
@@ -20,6 +27,25 @@ void Entity::RenderObject(MS& modelStack)
 	modelStack.Scale(size);
 }
 
+void Entity::Knockback(Vector3 dir)
+{
+	velocity.x += dir.x;
+	velocity.y += 5;
+	velocity.z += dir.z;
+
+	char* soundFileName[3];
+	soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
+	soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
+	soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
+
+	ISound* sound = engine->play3D(soundFileName[rand() % 3], vec3df(position.x, position.y, position.z), false, true);
+	if (sound)
+	{
+		sound->setVolume(1.f);
+		sound->setIsPaused(false);
+	}
+}
+
 bool Entity::IsActive()
 {
 	return active;
@@ -27,6 +53,15 @@ bool Entity::IsActive()
 void Entity::SetActive(bool active)
 {
 	this->active = active;
+}
+
+bool Entity::IsDead()
+{
+	return dead;
+}
+void Entity::SetDead(bool dead)
+{
+	this->dead = dead;
 }
 
 #define eps 0.000001f;
