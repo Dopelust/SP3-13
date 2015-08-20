@@ -116,7 +116,6 @@
     <ClCompile Include="Source\SceneBase.cpp" />
     <ClCompile Include="Source\shader.cpp" />
     <ClCompile Include="Source\vertex.cpp" />
-    <ClCompile Include="Source\Weapon.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Application.h" />
@@ -149,7 +148,6 @@
     <ClInclude Include="Source\SceneBase.h" />
     <ClInclude Include="Source\shader.hpp" />
     <ClInclude Include="Source\vertex.h" />
-    <ClInclude Include="Source\Weapon.h" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

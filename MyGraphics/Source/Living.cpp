@@ -16,10 +16,30 @@ void Living::Update(double dt, bool RestrictMovement)
 	position += velocity * dt;
 	if (id == 4)
 	{
+		if (!velocity.IsZero())
+		{
+			velocity.y -= 16 * dt;
+			Vector3 dir = velocity.Normalized();
 
+			if (dir.y < 0)
+				vOrientation = Math::RadianToDegree(atan(sqrt(dir.x * dir.x + dir.z * dir.z) / -dir.y)) - 90;
+			else
+				vOrientation = Math::RadianToDegree(atan(sqrt(dir.x * dir.x + dir.z * dir.z) / -dir.y)) + 90;
+		}
+		else
+		{
+			active = false;
+			return;
+		}
 	}
 	else
 	{
+		if (id < 3)
+		{
+			Vector3 dir; dir.SphericalToCartesian(hOrientation, 0);
+			velocity.x = dir.x; velocity.z = dir.z;
+		}
+
 		velocity.x += -velocity.x * dt * 16;
 		velocity.z += -velocity.z * dt * 16;
 
@@ -143,31 +163,31 @@ void Arrow::RespondToCollision(const vector<Block*>& object)
 			if (maxPlayer.z >= maxCube.z && minPlayer.z >= maxCube.z)
 			{
 				velocity.SetZero();
-				position.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
+				//position.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
 			}
 			else if (maxPlayer.z <= minCube.z && minPlayer.z <= minCube.z)
 			{
 				velocity.SetZero();
-				position.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
+				//position.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
 			}
 			else if (maxPlayer.x >= maxCube.x && minPlayer.x >= maxCube.x)
 			{
 				velocity.SetZero();
-				position.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
+				//position.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
 			}
 			else if (maxPlayer.x <= minCube.x && minPlayer.x <= minCube.x)
 			{
 				velocity.SetZero();
-				position.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
+				//position.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
 			}
 			else if (maxPlayer.y >= maxCube.y && minPlayer.y >= maxCube.y)
 			{
-				position.y = maxCube.y + eps;
+				//position.y = maxCube.y + collision.hitbox.y * 0.5f - collision.centre.y + eps;
 				velocity.SetZero();
 			}
 			else if (maxPlayer.y <= minCube.y && minPlayer.y <= minCube.y) //bump head
 			{
-				position.y = minCube.y - Player.collision.hitbox.y;
+				//position.y = minCube.y - Player.collision.hitbox.y * 0.5f + collision.centre.y;
 				velocity.SetZero();
 			}
 		}

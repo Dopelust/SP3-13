@@ -55,6 +55,8 @@ public:
 	float MaxSprintTime;
 	bool Sprint;
 	bool run;
+
+	CItem* getSelectedItem();
 };
 
 #endif

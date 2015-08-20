@@ -36,7 +36,7 @@ void Player::Init()
 	apparentHealth = trueHealth = 100;
 	camera.Init(Vector3(position.x, position.y + eyeLevel, position.z), hOrientation, vOrientation);
 	SprintBar = MaxSprintTime = 4;
-	Sprint = false;
+	Sprint = true;
 	run = false;
 
 	for (unsigned i = 0; i < 255; ++i)
@@ -306,6 +306,10 @@ void Player::reduceHealth(float reduction)
 
 	if (trueHealth < 1)
 		trueHealth = 0;
+}
+CItem * Player::getSelectedItem()
+{
+	return inventory.selectedSlot->item;
 }
 void Player::recoverHealth(float recovery)
 {

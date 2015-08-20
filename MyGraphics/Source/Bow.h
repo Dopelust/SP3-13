@@ -1,5 +1,5 @@
 #include <iostream>
-#include "Weapon.h"
+#include "Item.h"
 
 using namespace std;
 
@@ -15,5 +15,8 @@ public:
 
 	void Update(double dt);
 	void RenderItem(MS& modelStack);
+
+	float getCharge();
+	void setCharge(float Charge);
 };
 

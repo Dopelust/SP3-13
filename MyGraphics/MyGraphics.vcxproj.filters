@@ -144,9 +144,6 @@
     <ClCompile Include="Source\Item.cpp">
       <Filter>Source Files\Game\3D</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Weapon.cpp">
-      <Filter>Source Files\Game\3D</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Bow.cpp">
       <Filter>Source Files\Game\3D</Filter>
     </ClCompile>
@@ -232,9 +229,6 @@
     </ClInclude>
     <ClInclude Include="Source\Living.h">
       <Filter>Header Files\Game\3D\Entity</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Weapon.h">
-      <Filter>Header Files\Game\3D</Filter>
     </ClInclude>
     <ClInclude Include="Source\Bow.h">
       <Filter>Header Files\Game\3D</Filter>

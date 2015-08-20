@@ -28,9 +28,6 @@ using namespace irrklang;
 class MinScene : public SceneShadow
 {
 public:
-	static const int GRAVITY = -98;
-	static const int MAX_VELOCITY = 21;
-
 	MinScene();
 	~MinScene();
 
@@ -40,7 +37,7 @@ public:
 	void Update_Game(double dt);
 
 	Living* FetchEntity();
-	bool GenerateArrow(Entity& source);
+	bool GenerateArrow(Entity& source, float strength);
 	bool RemoveBlock(Block* block);
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
 	bool FetchStair(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % (NumBlocks - 3) + 3, int orientation = 0, int look = 0);

@@ -113,6 +113,9 @@ void MinScene::Init()
 	/*CKnife* Knife = new CKnife();
 	Knife->mesh = meshList["KNIFE"];
 	player.inventory.slot[0]->item = Knife;*/
+
+	Vector3 dir(0.5f, 0.5f, 1);
+//	cout << << endl;
 }
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
@@ -378,17 +381,20 @@ void MinScene::PartitionCollision()
 	{
 		LivingThings[i]->collisionBlockList.clear();
 
-		Vector3 Position = PositionToIndex(LivingThings[i]->position);
-		for (int x = Position.x - 1; x < Position.x + 1; ++x)
+		if (LivingThings[i]->IsActive())
 		{
-			for (int y = Position.y - 1; y < Position.y + 1; ++y)
+			Vector3 Position = PositionToIndex(LivingThings[i]->position);
+			for (int x = Position.x - 1; x < Position.x + 1; ++x)
 			{
-				for (int z = Position.z - 1; z < Position.z + 1; ++z)
+				for (int y = Position.y - 3; y < Position.y + 3; ++y)
 				{
-					if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+					for (int z = Position.z - 1; z < Position.z + 1; ++z)
 					{
-						if (worldBlockList[x][y][z])
-							LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+						if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+						{
+							if (worldBlockList[x][y][z])
+								LivingThings[i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
+						}
 					}
 				}
 			}
@@ -399,7 +405,7 @@ void MinScene::PartitionCollision()
 	Vector3 Position = PositionToIndex(player.position);
 	for (int x = Position.x - 1; x < Position.x + 1; ++x)
 	{
-		for (int y = Position.y - 1; y < Position.y + 1; ++y)
+		for (int y = Position.y - 3; y < Position.y + 3; ++y)
 		{
 			for (int z = Position.z - 1; z < Position.z + 1; ++z)
 			{
@@ -550,8 +556,9 @@ void MinScene::Update_Game(double dt)
 	{
 		if (player.inventory.selectedSlot->item->use)
 		{
-			GenerateArrow(player);
+			GenerateArrow(player, (player.inventory.selectedSlot->item->getCharge() + 0.5f) * 20);
 			player.inventory.selectedSlot->item->use = false;
+			player.inventory.selectedSlot->item->setCharge(0);
 		}
 	}
 	
@@ -744,18 +751,18 @@ Living* MinScene::FetchEntity()
 	LivingThings.push_back(LivingThing);
 	return LivingThing;
 }
-bool MinScene::GenerateArrow(Entity & source)
+bool MinScene::GenerateArrow(Entity & source, float strength)
 {
 	Arrow* arrow = new Arrow();
 	arrow->position = source.position; arrow->position.y += player.eyeLevel;
 	arrow->velocity.SphericalToCartesian(source.hOrientation, source.vOrientation);
-	arrow->velocity *= 16;
+	arrow->velocity *= strength;
 	arrow->hOrientation = source.hOrientation;
 	arrow->vOrientation = source.vOrientation;
 	arrow->climbHeight = 0.f;
 	arrow->id = 4;
-	arrow->collision.hitbox.Set(0.75f, 0.75f, 0.75f);
-	arrow->collision.centre.Set(0, 0.75f * 0.5f, 0);
+	arrow->collision.hitbox.Set(0.5f, 0.5f, 0.5f);
+	arrow->collision.centre.Set(0, 0, 0);
 
 	LivingThings.push_back(arrow);
 	worldLivingThings.push_back(arrow);
@@ -807,7 +814,7 @@ void MinScene::Render()
 	modelStack.LoadIdentity();
 	viewStack.LoadIdentity();
 	viewStack.LookAt(camera->position.x, camera->position.y, camera->position.z, camera->target.x, camera->target.y, camera->target.z, camera->up.x, camera->up.y, camera->up.z);
-	projection.SetToPerspective(camera->fov, 16.f / 9.f, 0.1f, 10000.f);
+	projection.SetToPerspective(camera->fov, 16.f / 9.f, 0.01f, 10000.f);
 	projectionStack.LoadMatrix(projection);
 
 	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
@@ -831,11 +838,21 @@ void MinScene::Render()
 	viewStack.LoadIdentity();
 	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
 
-	if (player.inventory.selectedSlot->item)
+	if (player.getSelectedItem())
 	{
 		modelStack.PushMatrix();
-		player.inventory.selectedSlot->item->RenderItem(modelStack);
-		RenderMesh(player.inventory.selectedSlot->item->mesh, true);
+		player.getSelectedItem()->RenderItem(modelStack);
+		RenderMesh(player.getSelectedItem()->mesh, true);
+		if (player.getSelectedItem()->itemID == CItem::BOW)
+		{
+			if (player.getSelectedItem()->getCharge() > 0.2f)
+			{
+				modelStack.Rotate(180, 0, 1, 0);
+				modelStack.Rotate(90, 0, 0, 1);
+				modelStack.Scale(3);
+				RenderMesh(meshList["ARROW"], true);
+			}
+		}
 		modelStack.PopMatrix();
 	}
 
@@ -956,19 +973,20 @@ void MinScene::RenderEntities()
 
 		modelStack.PushMatrix();
 		modelStack.Translate(LivingThings[i]->position);
+		if (LivingThings[i]->id == 4)
+		{
+			modelStack.Rotate(LivingThings[i]->hOrientation, 0, 1, 0);
+			modelStack.Rotate(-LivingThings[i]->vOrientation, 1, 0, 0);
+			ArrowMMat.push_back(modelStack.Top());
+			modelStack.PopMatrix();
+			continue;
+		}
+
 		modelStack.Rotate(LivingThings[i]->hOrientation, 0, 1, 0);
 
 		if (LivingThings[i]->id == 3)
 		{
 			HorseMMat.push_back(modelStack.Top());
-			modelStack.PopMatrix();
-			continue;
-		}
-		else if (LivingThings[i]->id == 4)
-		{
-			modelStack.Rotate(180, 0, 1, 0);
-			modelStack.Rotate(LivingThings[i]->vOrientation + 90, 1, 0, 0);
-			ArrowMMat.push_back(modelStack.Top());
 			modelStack.PopMatrix();
 			continue;
 		}
@@ -1061,7 +1079,7 @@ void MinScene::RenderBlocks()
 	{
 		if (blockList[i]->type == Block::TRANS)
 			continue;
-		if (!blockList[i]->collisionWithCylinder(camera->position + dir * (RenderDist * 0.5f), RenderDist * 0.5f))
+		if (!blockList[i]->collisionWithCylinder(camera->position + dir * (RenderDist * 0.75f), RenderDist * 0.75f))
 			continue;
 
 		modelStack.PushMatrix();
@@ -1121,21 +1139,13 @@ void MinScene::RenderScene()
 
 	if (Application::IsKeyPressed('Q'))
 	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); //wireframe mode
-
-		meshList["CUBE"]->textureID = NULL;
-
-		glDisable(GL_CULL_FACE);
-		modelStack.PushMatrix();
-		modelStack.Translate(player.initialPos);
-		modelStack.Scale(player.collision.hitbox);
-		RenderMesh(meshList["CUBE"], false);
-		modelStack.PopMatrix();
-		glEnable(GL_CULL_FACE);
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); //default fill mode
-
 		vector<Mtx44> MMat;
+
+		modelStack.PushMatrix();
+		modelStack.Translate(player.initialPos.x - player.collision.hitbox.x * 0.5f, player.initialPos.y, player.initialPos.z - player.collision.hitbox.z * 0.5f);
+		modelStack.Scale(player.collision.hitbox);
+		MMat.push_back(modelStack.Top());
+		modelStack.PopMatrix();
 
 		for (unsigned i = 0; i < count; ++i)
 		{
@@ -1149,6 +1159,17 @@ void MinScene::RenderScene()
 					modelStack.PopMatrix();
 				}
 			}
+		}
+
+		count = LivingThings.size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(LivingThings[i]->position - LivingThings[i]->collision.hitbox * 0.5f);
+			modelStack.Translate(LivingThings[i]->collision.centre);
+			modelStack.Scale(LivingThings[i]->collision.hitbox);
+			MMat.push_back(modelStack.Top());
+			modelStack.PopMatrix();
 		}
 
 		RenderInstance(meshList["WIREBLOCK"], MMat.size(), &MMat[0], false);
@@ -1219,7 +1240,7 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(Application::m_width * 0.5f - 100, Application::m_height * 0.5f - 100, 0);
 	modelStack.Rotate(-camera->orientation, 0, 0, 1);
-
+	
 	meshList["CIRCLE"]->textureID = m_lightDepthFBO.GetTexture();
 	modelStack.PushMatrix();
 	modelStack.Scale(180, 180, 1);
@@ -1266,7 +1287,7 @@ void MinScene::Render2D()
 	ss << "E";
 	RenderText(ss.str(), Color(1, 1, 1));
 	modelStack.PopMatrix();
-
+	
 	modelStack.PopMatrix();
 	glUniform1f(m_parameters[U_ALPHA], 0.75f);
 	modelStack.PushMatrix();
