@@ -665,9 +665,24 @@ void MinScene::Update(double dt)
 
 			LivingThings[j][i]->Update(dt, false);
 
-			if (j == 4 && !LivingThings[j][i]->IsDead()) //If Arrows,
+			if (j == 4) //If Arrows,
 			{
 				Block arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
+
+				if (LivingThings[j][i]->IsDead())
+				{
+					unsigned count2 = LivingThings[j][i]->collisionBlockList.size();
+					for (unsigned k = 0; k < count2; ++k)
+					{
+						if (Block::checkCollision(*LivingThings[j][i]->collisionBlockList[k], arrow))
+						{
+							for (unsigned l = 0; l < 5; ++l)
+								SpawnParticle(LivingThings[j][i]->position, LivingThings[j][i]->collisionBlockList[k]->id);
+						}
+					}
+					continue;
+				}
+			
 				for (unsigned j2 = 0; j2 < NumEntities; ++j2) //Check with the other entities
 				{
 					if (j2 == 4) //Which are not arrows
@@ -693,6 +708,9 @@ void MinScene::Update(double dt)
 
 					if (LivingThings[j][i]->IsDead())
 					{
+						for (unsigned l = 0; l < 10; ++l)
+							SpawnParticle(LivingThings[j][i]->position, 15);
+
 						LivingThings[j].erase(LivingThings[j].begin() + i); //Remove from list
 
 						count2 = worldLivingThings[j].size();
