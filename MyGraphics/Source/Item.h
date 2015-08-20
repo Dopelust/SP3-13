@@ -29,6 +29,7 @@ public:
 
 	virtual void Update(double dt);
 	virtual void RenderItem(MS& modelStack);
+	virtual void Bob(double dt);
 
 	virtual float getCharge();
 	virtual void setCharge(float Charge);
@@ -51,6 +52,7 @@ public:
 
 	virtual void Update(double dt);
 	virtual void RenderItem(MS& modelStack);
+	virtual void Bob(double dt);
 
 	virtual float getCharge();
 	virtual void setCharge(float Charge);

@@ -19,6 +19,10 @@ void CItem::RenderItem(MS & modelStack)
 {
 }
 
+void CItem::Bob(double dt)
+{
+}
+
 float CItem::getCharge()
 {
 	return 0;
@@ -69,5 +73,9 @@ float CWeapon::getCharge()
 }
 
 void CWeapon::setCharge(float Charge)
+{
+}
+
+void CWeapon::Bob(double dt)
 {
 }

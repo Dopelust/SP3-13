@@ -38,6 +38,7 @@ void Player::Init()
 	SprintBar = MaxSprintTime = 4;
 	Sprint = true;
 	run = false;
+	Steps = 0.f;
 
 	for (unsigned i = 0; i < 255; ++i)
 	{
@@ -127,7 +128,7 @@ void Player::Update(double dt, bool RestrictMovement)
 	}
 	else
 	{
-		if (myKeys['C'] && Sprint && run)
+		if (myKeys['C'] && myKeys['w'] && Sprint && run)
 		{
 			SprintBar -= dt;
 			WALK_SPEED = 5.612f;
@@ -200,7 +201,6 @@ void Player::Update(double dt, bool RestrictMovement)
 	{
 		WALK_SPEED = 11;
 
-		Vector3 hVel;
 		if (myKeys['w'])
 			hVel += direction * WALK_SPEED;
 		if (myKeys['a'])
@@ -209,7 +209,7 @@ void Player::Update(double dt, bool RestrictMovement)
 			hVel += -direction * WALK_SPEED * 0.333f;
 		if (myKeys['d'])
 			hVel += right * WALK_SPEED * 0.333f;
-
+		
 		mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
 
 		if (mount->jump && mount->velocity.y == 0)
@@ -224,19 +224,72 @@ void Player::Update(double dt, bool RestrictMovement)
 		position = mount->position;
 		position.y += 1.1f;
 		velocity.SetZero();
-	}
-	else if (velocity.y == 0)
-	{
-		if (!myKeys['S'])
+
+		if (!mount->jump)
 		{
-			float step = 0.f;
+			if (hVel.LengthSquared() >= WALK_SPEED*0.9f * WALK_SPEED*0.9f)
+			{
+				stepRate += dt;
+				if (stepRate >= 0.4f)
+				{
+					char* soundFileName[4] = { "Assets/Media/Horse/Horse1.mp3", "Assets/Media/Horse/Horse2.mp3", "Assets/Media/Horse/Horse3.mp3", "Assets/Media/Horse/Horse4.mp3" };
 
-			if (myKeys['C'])
-				step = 0.3f;
+					ISound* sound = engine->play2D(soundFileName[rand() % 4], false, true);
+					if (sound)
+					{
+						sound->setVolume(0.2f);
+						sound->setIsPaused(false);
+					}
+					stepRate = 0;
+				}
+				mount->size.y = Horse;
+
+				if (Horse > 1.05f)
+					Riding = true;
+				else if (Horse < 0.95f)
+					Riding = false;
+
+				if (Riding)
+					Horse -= dt*0.5f;
+				else
+					Horse += dt*0.5f;
+			}
+		}
+		else if (Horse > 1)
+			Fall(Horse, dt*0.9f, 1);
+		else if (Horse < 1)
+			Rise(Horse, dt*0.9f , 1);
+	}
+	else
+	{
+		hVel.Set(velocity.x, 0, velocity.z);
+
+		if (!hVel.IsZero())
+		{
+			if (myKeys['S'])
+				Steps += dt * 0.5f;
+			else if (myKeys['C'])
+				Steps += dt * 2;
 			else
-				step = 0.45f;
+				Steps += dt;
 
-			if (stepRate >= step)
+			if (getSelectedItem())
+				getSelectedItem()->Bob(Steps);
+		}
+
+		if (velocity.y == 0)
+		{
+			if (!sneak && run)
+			{
+				stepRate += dt;
+
+				if (myKeys['C'])
+				{
+					stepRate += dt;
+				}
+			}
+
+			if (stepRate >= 0.5f)
 			{
 				hVel.Set(velocity.x, 0, velocity.z);
 				if (hVel.LengthSquared() > 0.25f*0.25f)
@@ -254,21 +307,22 @@ void Player::Update(double dt, bool RestrictMovement)
 					}
 				}
 			}
-		}
-		if (initialVel.y < -14)
-		{
-			char* soundFileName[3];
-			soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
-			soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
-			soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
 
-			ISound* sound = engine->play2D(soundFileName[rand() % 3], false, true);
-			if (sound)
+			if (initialVel.y < -14)
 			{
-				sound->setVolume(0.75f);
-				sound->setIsPaused(false);
+				char* soundFileName[3];
+				soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
+				soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
+				soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
+
+				ISound* sound = engine->play2D(soundFileName[rand() % 3], false, true);
+				if (sound)
+				{
+					sound->setVolume(0.75f);
+					sound->setIsPaused(false);
+				}
+				reduceHealth(-initialVel.y / 3);
 			}
-			reduceHealth(-initialVel.y / 3);
 		}
 	}
 
@@ -283,8 +337,6 @@ void Player::Update(double dt, bool RestrictMovement)
 		Fall(apparentHealth, dt * 50, trueHealth);
 	else if (trueHealth > apparentHealth)
 		Rise(apparentHealth, dt * 50, trueHealth);
-
-	stepRate += dt;
 
 	for (unsigned i = 0; i < 255; ++i)
 	{

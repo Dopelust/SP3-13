@@ -51,10 +51,14 @@ public:
 	bool myKeys[255];
 	bool noClip;
 
+	float Steps;
 	float SprintBar;
 	float MaxSprintTime;
 	bool Sprint;
 	bool run;
+	float Horse;
+	float upDown;
+	bool Riding;
 
 	CItem* getSelectedItem();
 };

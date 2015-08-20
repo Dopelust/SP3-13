@@ -109,9 +109,9 @@ void MinScene::Init()
 	Bow->mesh = meshList["BOW"];
 	player.inventory.slot[1]->item = Bow;
 
-	/*CKnife* Knife = new CKnife();
+	CKnife* Knife = new CKnife();
 	Knife->mesh = meshList["KNIFE"];
-	player.inventory.slot[0]->item = Knife;*/
+	player.inventory.slot[0]->item = Knife;
 
 	Vector3 dir(0.5f, 0.5f, 1);
 //	cout << << endl;
@@ -989,11 +989,14 @@ void MinScene::RenderEntities_GPass()
 		meshList["R_LEG"] };
 	vector<Mtx44> MMat[6]; //Head, Body, Arm, Leg
 	vector<Mtx44> HorseMMat;
-	vector<Mtx44> ArrowMMat;
+
 	float rotation = sin(Math::RadianToDegree(elapsedTime * 0.1f)) * 30;
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
+		if (j == 4)
+			continue;
+
 		unsigned count = LivingThings[j].size();
 
 		for (unsigned i = 0; i < count; ++i)
@@ -1009,12 +1012,6 @@ void MinScene::RenderEntities_GPass()
 			if (j == 3)
 			{
 				HorseMMat.push_back(modelStack.Top());
-				modelStack.PopMatrix();
-				continue;
-			}
-			if (j == 4)
-			{
-				ArrowMMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
 				continue;
 			}
@@ -1062,8 +1059,6 @@ void MinScene::RenderEntities_GPass()
 
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
-	if (ArrowMMat.size() > 0)
-		RenderInstance(meshList["ARROW"], ArrowMMat.size(), &ArrowMMat[0], true);
 }
 
 void MinScene::RenderEntities()
@@ -1108,9 +1103,9 @@ void MinScene::RenderEntities()
 				}
 			}
 			modelStack.Rotate(LivingThings[j][i]->hOrientation, 0, 1, 0);
-
 			if (j == 3)
 			{
+				modelStack.Scale(LivingThings[j][i]->size);
 				HorseMMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
 				continue;
