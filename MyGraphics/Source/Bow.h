@@ -14,13 +14,19 @@ public:
 	float Charge;
 
 	void Bob(double dt);
+	void BobY(double dt);
+
 	void Update(double dt);
 	void RenderItem(MS& modelStack);
+	void RenderArrow(MS& modelStack);
 
 	float getCharge();
 	void setCharge(float Charge);
 
 	float currentWeapbobX;
 	float currentWeapbobY;
+
+	float bowBobY;
+	float BobYAmount;
 };
 

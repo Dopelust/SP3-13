@@ -33,7 +33,7 @@ public:
 	Camera3 camera;
 	CInventory inventory;
 	float WALK_SPEED;
-	Living* mount;
+	Entity* mount;
 
 	float eyeLevel;
 	
@@ -51,7 +51,6 @@ public:
 	bool myKeys[255];
 	bool noClip;
 
-	float Steps;
 	float SprintBar;
 	float MaxSprintTime;
 	bool Sprint;

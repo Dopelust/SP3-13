@@ -94,34 +94,34 @@ int FrustumG::sphereInFrustum(Vector3 &p, float raio) {
 
 int FrustumG::boxInFrustum(Block &b) {
 
-	int result = INSIDE;
-	for (int i = 0; i < 6; i++) 
-	{
-		Vector3 minCoord = b.getMinCoord();
-		Vector3 maxCoord = b.getMaxCoord();
+	//int result = INSIDE;
+	//for (int i = 0; i < 6; i++) 
+	//{
+	////	Vector3 minCoord = b.getMinCoord();
+	////	Vector3 maxCoord = b.getMaxCoord();
 
-		if (pl[i].normal.x >= 0)
-		{
-			float temp = minCoord.x;
-			minCoord.x = maxCoord.x; maxCoord.x = temp;
-		}
-		if (pl[i].normal.y >= 0)
-		{
-			float temp = minCoord.y;
-			minCoord.y = maxCoord.y; maxCoord.y = temp;
-		}
-		if (pl[i].normal.z >= 0)
-		{
-			float temp = minCoord.z;
-			minCoord.z = maxCoord.z; maxCoord.z = temp;
-		}
+	//	if (pl[i].normal.x >= 0)
+	//	{
+	//		float temp = minCoord.x;
+	//		minCoord.x = maxCoord.x; maxCoord.x = temp;
+	//	}
+	//	if (pl[i].normal.y >= 0)
+	//	{
+	//		float temp = minCoord.y;
+	//		minCoord.y = maxCoord.y; maxCoord.y = temp;
+	//	}
+	//	if (pl[i].normal.z >= 0)
+	//	{
+	//		float temp = minCoord.z;
+	//		minCoord.z = maxCoord.z; maxCoord.z = temp;
+	//	}
 
-		if (pl[i].distance(maxCoord) < 0)
-			return OUTSIDE;
-		else if (pl[i].distance(minCoord) < 0)
-			result = INTERSECT;
-	}
-	return(result);
+	//	if (pl[i].distance(maxCoord) < 0)
+	//		return OUTSIDE;
+	//	else if (pl[i].distance(minCoord) < 0)
+	//		result = INTERSECT;
+	//}
+	//return(result);
 
 }
 

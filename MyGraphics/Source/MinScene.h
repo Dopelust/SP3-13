@@ -36,7 +36,7 @@ public:
 	void Update_LevelEditor(double dt);
 	void Update_Game(double dt);
 
-	Living* FetchEntity(unsigned id);
+	Entity* FetchEntity(unsigned id);
 	bool GenerateArrow(Entity& source, float strength);
 	bool RemoveBlock(Block* block);
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
@@ -54,8 +54,8 @@ public:
 	static Vector3 PositionToIndex(Vector3 pos);
 
 private:
-	vector<Living*> LivingThings[NumEntities];
-	vector<Living*> worldLivingThings[NumEntities];
+	vector<Entity*> LivingThings[NumEntities];
+	vector<Entity*> worldLivingThings[NumEntities];
 
 	unsigned worldBlocks;
 	Block* selectedBlock;

@@ -32,13 +32,11 @@ void Player::Init()
 	eyeLevel = 1.62f;
 	collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 	collision.centre.Set(0, collision.hitbox.y / 2, 0);
-	stepRate = 0;
 	apparentHealth = trueHealth = 100;
 	camera.Init(Vector3(position.x, position.y + eyeLevel, position.z), hOrientation, vOrientation);
 	SprintBar = MaxSprintTime = 4;
 	Sprint = true;
 	run = false;
-	Steps = 0.f;
 
 	for (unsigned i = 0; i < 255; ++i)
 	{

@@ -80,26 +80,48 @@ void MinScene::Init()
 	camera->position = player.position; camera->position.y += player.eyeLevel;
 	soundInit();
 
-	for (unsigned i = 0; i < 20; ++i)
+	for (unsigned i = 0; i < 256; ++i)
 	{
-		Living* entity = new Living();
-		unsigned id = rand() % 4;
-		entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 5);
-		entity->hOrientation = rand() % 360;
+		unsigned id = rand() % NumEntities;
 
-		if (id == 3)
+		switch (id)
 		{
-			entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
-			entity->collision.centre.Set(0, 1.05f, 0);
-			entity->id = id;
-			worldLivingThings[id].push_back(entity);
-			continue;
+		case Entity::ENEMY_1: case Entity::ENEMY_2: case Entity::ENEMY_3:
+			{
+				Enemy* entity = new Enemy(2, 4.0, 3.0);
+				entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
+				entity->hOrientation = rand() % 360;
+				entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
+				entity->collision.centre.Set(0, 0.9f, 0);
+				entity->id = id;
+				worldLivingThings[id].push_back(entity);
+				break;
+			}
+		case Entity::HORSE:
+			{
+				Entity* entity = new Entity();
+				entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
+				entity->hOrientation = rand() % 360;
+				entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
+				entity->collision.centre.Set(0, 1.05f, 0);
+				entity->id = id;
+				worldLivingThings[id].push_back(entity);
+				break;
+			}
+		case Entity::WOLF:
+			{
+				Living* entity = new Living();
+				entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
+				entity->hOrientation = rand() % 360;
+				entity->collision.hitbox.Set(1.f, 0.9f, 1.f);
+				entity->collision.centre.Set(0, 0.45f, 0);
+				entity->id = id;
+				worldLivingThings[id].push_back(entity);
+				break;
+			}
+		default:
+			break;
 		}
-		
-		entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
-		entity->collision.centre.Set(0, 0.9f, 0);
-		entity->id = id;
-		worldLivingThings[id].push_back(entity);
 	}
 
 	InTheZone = false;
@@ -564,13 +586,26 @@ void MinScene::Update_Game(double dt)
 {
 	player.inventory.Update(dt);
 
-	if (player.inventory.selectedSlot->item)
+	if (player.getSelectedItem())
 	{
-		if (player.inventory.selectedSlot->item->use)
+		if (player.getSelectedItem()->use)
 		{
-			GenerateArrow(player, (player.inventory.selectedSlot->item->getCharge() + 0.5f) * 20);
-			player.inventory.selectedSlot->item->use = false;
-			player.inventory.selectedSlot->item->setCharge(0);
+			switch (player.getSelectedItem()->itemID)
+			{
+			case CItem::BOW:
+				GenerateArrow(player, (player.inventory.selectedSlot->item->getCharge() - 0.4f) * 64);
+				char* soundFileLocation[3] = { "Assets/Media/Weapons/shoot1.mp3", "Assets/Media/Weapons/shoot2.mp3" , "Assets/Media/Weapons/shoot3.mp3" };
+				ISound* sound = engine->play2D(soundFileLocation[rand() % 3], false, true);
+				if (sound)
+				{
+					sound->setVolume(0.4f);
+					sound->setIsPaused(false);
+				}
+				break;
+			}
+
+			player.getSelectedItem()->use = false;
+			player.getSelectedItem()->setCharge(0);
 		}
 	}
 	
@@ -734,7 +769,7 @@ void MinScene::Update(double dt)
 	lights[0].position.Set(camera->position.x, 4, camera->position.z);
 
 	tooltip.clear();
-	Living* selectedEntity = NULL;
+	Entity* selectedEntity = NULL;
 	selectedBlock = NULL;
 
 	float dist = INT_MAX;
@@ -828,42 +863,42 @@ void MinScene::Update(double dt)
 	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
 		bGButtonPressed = false;
 }
-Living* MinScene::FetchEntity(unsigned id)
+Entity* MinScene::FetchEntity(unsigned id)
 {
-	if (id != 4)
-	{
-		unsigned count = worldLivingThings[id].size();
-		for (unsigned i = 0; i < count; ++i)
-		{
-			if (!worldLivingThings[id][i]->IsActive())
-			{
-				worldLivingThings[id][i]->SetActive(true);
-				worldLivingThings[id][i]->lifetime = 0.f;
-				worldLivingThings[id][i]->id = id;
+	//if (id != 4)
+	//{
+	//	unsigned count = worldLivingThings[id].size();
+	//	for (unsigned i = 0; i < count; ++i)
+	//	{
+	//		if (!worldLivingThings[id][i]->IsActive())
+	//		{
+	//			worldLivingThings[id][i]->SetActive(true);
+	//			worldLivingThings[id][i]->lifetime = 0.f;
+	//			worldLivingThings[id][i]->id = id;
 
-				return worldLivingThings[id][i];
-			}
-		}
-	}
+	//			return worldLivingThings[id][i];
+	//		}
+	//	}
+	//}
 
-	if (id == 4)
-	{
-		Arrow* LivingThing = new Arrow();
-		LivingThing->SetActive(true);
-		LivingThing->id = id;
-		worldLivingThings[id].push_back(LivingThing);
-		LivingThings[id].push_back(LivingThing);
-		return LivingThing;
-	}
-	else
-	{
-		Living* LivingThing = new Living();
-		LivingThing->SetActive(true);
-		LivingThing->id = id;
-		worldLivingThings[id].push_back(LivingThing);
-		LivingThings[id].push_back(LivingThing);
-		return LivingThing;
-	}
+	//if (id == 4)
+	//{
+	//	Arrow* LivingThing = new Arrow();
+	//	LivingThing->SetActive(true);
+	//	LivingThing->id = id;
+	//	worldLivingThings[id].push_back(LivingThing);
+	//	LivingThings[id].push_back(LivingThing);
+	//	return LivingThing;
+	//}
+	//else
+	//{
+	//	Living* LivingThing = new Living();
+	//	LivingThing->SetActive(true);
+	//	LivingThing->id = id;
+	//	worldLivingThings[id].push_back(LivingThing);
+	//	LivingThings[id].push_back(LivingThing);
+	//	return LivingThing;
+	//}
 }
 bool MinScene::GenerateArrow(Entity & source, float strength)
 {
@@ -957,17 +992,19 @@ void MinScene::Render()
 		modelStack.PushMatrix();
 		player.getSelectedItem()->RenderItem(modelStack);
 		RenderMesh(player.getSelectedItem()->mesh, true);
+		modelStack.PopMatrix();
+
 		if (player.getSelectedItem()->itemID == CItem::BOW)
 		{
-			if (player.getSelectedItem()->getCharge() > 0.3f)
+			CBow* theBow = dynamic_cast<CBow*>(player.getSelectedItem());
+			if (theBow->Charge > 0.3f)
 			{
-				modelStack.Rotate(180, 0, 1, 0);
-				modelStack.Rotate(90, 0, 0, 1);
-				modelStack.Scale(3);
+				modelStack.PushMatrix();
+				theBow->RenderArrow(modelStack);
 				RenderMesh(meshList["ARROW"], true);
+				modelStack.PopMatrix();
 			}
 		}
-		modelStack.PopMatrix();
 	}
 
 	projection.SetToOrtho(0, Application::m_width, 0, Application::m_height, -80, 80);
@@ -980,6 +1017,7 @@ void MinScene::Render()
 
 void MinScene::RenderEntities_GPass()
 {
+	vector<Mtx44> MMat[6]; //Head, Body, Arm, Leg
 	Mesh * mesh[6] = {
 		meshList["HEAD"],
 		meshList["BODY"],
@@ -987,10 +1025,13 @@ void MinScene::RenderEntities_GPass()
 		meshList["L_LEG"],
 		meshList["R_ARM"],
 		meshList["R_LEG"] };
-	vector<Mtx44> MMat[6]; //Head, Body, Arm, Leg
+	vector<Mtx44> WolfMMat[4];
+	Mesh * wolfMesh[4] = {
+		meshList["WOLF_HEAD"],
+		meshList["WOLF_BODY"],
+		meshList["WOLF_LEG"],
+		meshList["WOLF_TAIL"] };
 	vector<Mtx44> HorseMMat;
-
-	float rotation = sin(Math::RadianToDegree(elapsedTime * 0.1f)) * 30;
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
@@ -1012,6 +1053,18 @@ void MinScene::RenderEntities_GPass()
 			if (j == 3)
 			{
 				HorseMMat.push_back(modelStack.Top());
+				modelStack.PopMatrix();
+				continue;
+			}
+
+			float rotation = LivingThings[j][i]->getSkeletalRotation();
+
+			if (j == 5)
+			{
+				WolfMMat[0].push_back(modelStack.Top());
+				WolfMMat[1].push_back(modelStack.Top());
+				WolfMMat[2].push_back(modelStack.Top());
+				WolfMMat[3].push_back(modelStack.Top());
 				modelStack.PopMatrix();
 				continue;
 			}
@@ -1057,6 +1110,12 @@ void MinScene::RenderEntities_GPass()
 			RenderInstance(mesh[i], MMat[i].size(), &MMat[i][0], true);
 	}
 
+	for (unsigned i = 0; i < 4; ++i)
+	{
+		if (!WolfMMat[i].empty())
+			RenderInstance(wolfMesh[i], WolfMMat[i].size(), &WolfMMat[i][0], true);
+	}
+
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
 }
@@ -1074,9 +1133,14 @@ void MinScene::RenderEntities()
 		meshList["R_ARM"],
 		meshList["R_LEG"] };
 	vector<Mtx44> MMat[3][6]; //Head, Body, Arm, Leg
+	vector<Mtx44> WolfMMat[4];
+	Mesh * wolfMesh[4] = {
+		meshList["WOLF_HEAD"],
+		meshList["WOLF_BODY"],
+		meshList["WOLF_LEG"],
+		meshList["WOLF_TAIL"] };
 	vector<Mtx44> HorseMMat;
 	vector<Mtx44> ArrowMMat;
-	float rotation = sin(Math::RadianToDegree(elapsedTime * 0.1f)) * 30;
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
@@ -1117,11 +1181,62 @@ void MinScene::RenderEntities()
 				modelStack.PopMatrix();
 				continue;
 			}
+			float rotation = LivingThings[j][i]->getSkeletalRotation();
 
-			modelStack.PushMatrix();
+			if (j == 5)
+			{
+				WolfMMat[0].push_back(modelStack.Top());
+				WolfMMat[1].push_back(modelStack.Top());
+
+				modelStack.PushMatrix();
+				modelStack.Translate(0, 0.68125f, -0.561f);
+				modelStack.Rotate(-rotation * 0.3f, 0, 1, 0);
+				modelStack.Rotate(-10, 1, 0, 0);
+				modelStack.Translate(0, -0.68125f, 0.561f);
+				WolfMMat[3].push_back(modelStack.Top());
+				modelStack.PopMatrix();
+
+				modelStack.PushMatrix();
+				modelStack.Translate(0.094f, 0, 0.188f);
+
+				modelStack.PushMatrix();
+				modelStack.Translate(0, 0.5f, 0);
+				modelStack.Rotate(-rotation, 1, 0, 0);
+				modelStack.Translate(0, -0.5f, 0);
+				WolfMMat[2].push_back(modelStack.Top());
+				modelStack.PopMatrix();
+
+				modelStack.Translate(0, 0, -0.44f - 0.188f);
+				modelStack.Translate(0, 0.5f, 0);
+				modelStack.Rotate(rotation, 1, 0, 0);
+				modelStack.Translate(0, -0.5f, 0);
+				WolfMMat[2].push_back(modelStack.Top());
+				modelStack.PopMatrix();
+
+				modelStack.PushMatrix();
+				modelStack.Translate(-0.094f, 0, 0.188f);
+
+				modelStack.PushMatrix();
+				modelStack.Translate(0, 0.5f, 0);
+				modelStack.Rotate(rotation, 1, 0, 0);
+				modelStack.Translate(0, -0.5f, 0);
+				WolfMMat[2].push_back(modelStack.Top());
+				modelStack.PopMatrix();
+
+				modelStack.Translate(0, 0, -0.44f - 0.188f);
+				modelStack.Translate(0, 0.5f, 0);
+				modelStack.Rotate(-rotation, 1, 0, 0);
+				modelStack.Translate(0, -0.5f, 0);
+				WolfMMat[2].push_back(modelStack.Top());
+				modelStack.PopMatrix();
+
+				modelStack.PopMatrix();
+
+				continue;
+			}
+
 			MMat[j][0].push_back(modelStack.Top());
 			MMat[j][1].push_back(modelStack.Top());
-			modelStack.PopMatrix();
 
 			modelStack.PushMatrix();
 			modelStack.Translate(0, 1.5f, 0);
@@ -1164,6 +1279,14 @@ void MinScene::RenderEntities()
 		}
 	}
 	
+	for (unsigned i = 0; i < 4; ++i)
+	{
+		wolfMesh[i]->textureID = textureID["WOLF"];
+
+		if (!WolfMMat[i].empty())
+			RenderInstance(wolfMesh[i], WolfMMat[i].size(), &WolfMMat[i][0], true);
+	}
+
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
 	if (ArrowMMat.size() > 0)

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#define NumEntities 5 //Enemy1, Enemy2, Enemy3, Horse, Arrow
+#define NumEntities 6 //Enemy1, Enemy2, Enemy3, Horse, Arrow, Wolf
 
 using namespace::std;
 
@@ -18,6 +18,17 @@ class Arrow;
 class Entity
 {
 public:
+	enum EntityIDs
+	{
+		ENEMY_1,
+		ENEMY_2,
+		ENEMY_3,
+		HORSE,
+		ARROW,
+		WOLF,
+		NUM_ENTITIES,
+	};
+
 	Entity();
 	virtual ~Entity();
 
@@ -29,6 +40,7 @@ public:
 	Collision collision;
 	vector<Block*> collisionBlockList;
 
+	unsigned id;
 	float hOrientation;
 	float vOrientation;
 
@@ -44,14 +56,17 @@ public:
 	void SetDead(bool dead);
 
 	virtual void Update(double dt);
-	virtual void Update(double dt, const vector<Block*>&object, bool RestrictMovement);
+	virtual void Update(double dt, bool RestrictMovement);
 	virtual void RespondToCollision(const vector<Block*>&object);
 	virtual void RenderObject(MS& modelStack);
 
 	float climbHeight;
 
+	virtual float getSkeletalRotation();
 	void Knockback(Vector3 dir);
 	vector<Arrow*> StuckedArrows;
+
+	float Steps;
 protected:
 	bool active;
 	bool dead;

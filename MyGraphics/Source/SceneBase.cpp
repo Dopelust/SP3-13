@@ -178,6 +178,11 @@ void SceneBase::InitMesh()
 	meshList["R_ARM"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//RightArm.obj");
 	meshList["R_LEG"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//RightLeg.obj");
 
+	meshList["WOLF_HEAD"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Head.obj");
+	meshList["WOLF_BODY"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Body.obj");
+	meshList["WOLF_TAIL"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Tail.obj");
+	meshList["WOLF_LEG"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Leg.obj");
+
 	textureID["SLOT"] = Load2DTGA("Assets//Slot.tga", false, false);
 	textureID["SELECTOR"] = Load2DTGA("Assets//Selector.tga", false);
 	textureID["SKYBOX"] = LoadTGA("Assets//Skybox.tga");
@@ -186,6 +191,7 @@ void SceneBase::InitMesh()
 	textureID["PLAYER2"] = Load2DTGA("Assets//Player//gregor.tga");
 	textureID["PLAYER3"] = Load2DTGA("Assets//Player//sand.tga");
 	textureID["PLAYER4"] = Load2DTGA("Assets//Player//silver.tga");
+	textureID["WOLF"] = Load2DTGA("Assets//Wolf//wolf.tga");
 	textureID["SPIRITBAR"] = Load2DTGA("Assets//SpiritBar.tga", false);
 
 	cout << "Mesh Loaded." << endl << endl;

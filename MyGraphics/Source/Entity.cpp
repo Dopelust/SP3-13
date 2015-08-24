@@ -7,7 +7,7 @@ using namespace irrklang;
 
 extern ISoundEngine * engine;
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false)
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f)
 {
 	active = true;
 }
@@ -33,12 +33,23 @@ void Entity::Knockback(Vector3 dir)
 	velocity.y += 5;
 	velocity.z += dir.z;
 
-	char* soundFileName[3];
-	soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
-	soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
-	soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
+	vector<char*> soundFileName;
 
-	ISound* sound = engine->play3D(soundFileName[rand() % 3], vec3df(position.x, position.y, position.z), false, true);
+	if (id == HORSE)
+	{
+		soundFileName.push_back("Assets/Media/Damage/horseCry1.mp3");
+		soundFileName.push_back("Assets/Media/Damage/horseCry2.mp3");
+		soundFileName.push_back("Assets/Media/Damage/horseCry3.mp3");
+		soundFileName.push_back("Assets/Media/Damage/horseCry4.mp3");
+	}
+	else
+	{
+		soundFileName.push_back("Assets/Media/Damage/hit1.mp3");
+		soundFileName.push_back("Assets/Media/Damage/hit2.mp3");
+		soundFileName.push_back("Assets/Media/Damage/hit3.mp3");
+	}
+
+	ISound* sound = engine->play3D(soundFileName[rand() % soundFileName.size()], vec3df(position.x, position.y, position.z), false, true);
 	if (sound)
 	{
 		sound->setVolume(1.f);
@@ -66,8 +77,26 @@ void Entity::SetDead(bool dead)
 
 #define eps 0.000001f;
 
-void Entity::Update(double dt, const vector<Block*>& object, bool RestrictMovement)
+float Entity::getSkeletalRotation()
 {
+	return sin(Math::DegreeToRadian(Steps)) * 30;
+}
+
+void Entity::Update(double dt, bool RestrictMovement)
+{
+	initialPos = position;
+	initialVel = velocity;
+
+	velocity.x += -velocity.x * 16 * dt;
+	velocity.z += -velocity.z * 16 * dt;
+	if (velocity.x > -0.1f && velocity.x < 0.1f)
+		velocity.x = 0;
+	if (velocity.z > -0.1f && velocity.z < 0.1f)
+		velocity.z = 0;
+	velocity.y -= 30 * dt;
+
+	position += velocity * dt;
+	RespondToCollision(this->collisionBlockList);
 }
 
 void Entity::RespondToCollision(const vector<Block*>&object)
