@@ -168,6 +168,9 @@ void SceneBase::InitMesh()
 	meshList["BOW"] = MeshBuilder::GenerateOBJ("Bow", "Assets//Bow.obj");
 	meshList["BOW"]->textureID = Load2DTGA("Assets//Bow.tga");
 
+	meshList["MEAT"] = MeshBuilder::GenerateOBJ("Meat", "Assets//Meat.obj");
+	meshList["MEAT"]->textureID = LoadTGA("Assets//Meat.tga");
+
 	meshList["KNIFE"] = MeshBuilder::GenerateOBJ("Knife", "Assets//M9.obj");
 	meshList["KNIFE"]->textureID = Load2DTGA("Assets//Knife.tga");
 

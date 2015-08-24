@@ -22,11 +22,5 @@ public:
 
 	float getCharge();
 	void setCharge(float Charge);
-
-	float currentWeapbobX;
-	float currentWeapbobY;
-
-	float bowBobY;
-	float BobYAmount;
 };
 

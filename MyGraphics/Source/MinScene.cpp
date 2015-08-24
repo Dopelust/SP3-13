@@ -80,7 +80,7 @@ void MinScene::Init()
 	camera->position = player.position; camera->position.y += player.eyeLevel;
 	soundInit();
 
-	for (unsigned i = 0; i < 256; ++i)
+	for (unsigned i = 0; i < 128; ++i)
 	{
 		unsigned id = rand() % NumEntities;
 
@@ -93,7 +93,7 @@ void MinScene::Init()
 				entity->hOrientation = rand() % 360;
 				entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 				entity->collision.centre.Set(0, 0.9f, 0);
-				entity->id = id;
+				entity->entityID = id;
 				worldLivingThings[id].push_back(entity);
 				break;
 			}
@@ -104,7 +104,7 @@ void MinScene::Init()
 				entity->hOrientation = rand() % 360;
 				entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
 				entity->collision.centre.Set(0, 1.05f, 0);
-				entity->id = id;
+				entity->entityID = id;
 				worldLivingThings[id].push_back(entity);
 				break;
 			}
@@ -112,13 +112,20 @@ void MinScene::Init()
 			{
 				Living* entity = new Living();
 				entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
-				entity->hOrientation = rand() % 360;
-				entity->collision.hitbox.Set(1.f, 0.9f, 1.f);
-				entity->collision.centre.Set(0, 0.45f, 0);
-				entity->id = id;
+				entity->hOrientation = entity->newOrientation = rand() % 360;
+				entity->collision.hitbox.Set(0.7f, 0.8f, 0.7f);
+				entity->collision.centre.Set(0, 0.4f, 0);
+				entity->entityID = id;
+				entity->health = 50;
 				worldLivingThings[id].push_back(entity);
 				break;
 			}
+		case Entity::DROP:
+		{
+			Entity* entity = FetchEntity(Entity::DROP);
+			entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
+			break;
+		}
 		default:
 			break;
 		}
@@ -135,8 +142,9 @@ void MinScene::Init()
 	Knife->mesh = meshList["KNIFE"];
 	player.inventory.slot[0]->item = Knife;
 
-	Vector3 dir(0.5f, 0.5f, 1);
-//	cout << << endl;
+	CFood* Food = new CFood();
+	Food->mesh = meshList["MEAT"];
+	player.inventory.slot[2]->item = Food;
 }
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
@@ -209,44 +217,44 @@ bool MinScene::FetchStair(Vector3 pos, bool checkForCollision, unsigned blockID,
 	switch (orientation)
 	{
 	case 0:
-		c.hitbox.Set(1, 0.5f, 0.5f);
+		c.hitbox.Set(1, 0.5f, 1);
 		if (look == 90)
-			c.centre.Set(0.5f, 0.75f, 0.75f);
+			c.centre.Set(0.5f, 0.75f, 0.5f);
 		else
-			c.centre.Set(0.5f, 0.25f, 0.75f);
+			c.centre.Set(0.5f, 0.25f, 0.5f);
 		o->collisions.push_back(c);
 		c.hitbox.Set(1, 1, 0.5f);
 		c.centre.Set(0.5f, 0.5f, 0.25f);
 		o->collisions.push_back(c);
 		break;
 	case 180:
-		c.hitbox.Set(1, 0.5f, 0.5f);
+		c.hitbox.Set(1, 0.5f, 1);
 		if (look == 90)
-			c.centre.Set(0.5f, 0.75f, 0.25f);
+			c.centre.Set(0.5f, 0.75f, 0.5f);
 		else
-			c.centre.Set(0.5f, 0.25f, 0.25f);
+			c.centre.Set(0.5f, 0.25f, 0.5f);
 		o->collisions.push_back(c);
 		c.hitbox.Set(1, 1, 0.5f);
 		c.centre.Set(0.5f, 0.5f, 0.75f);
 		o->collisions.push_back(c);
 		break;
 	case 90:
-		c.hitbox.Set(0.5f, 0.5f, 1);
+		c.hitbox.Set(1, 0.5f, 1);
 		if (look == 90)
-			c.centre.Set(0.75f, 0.75f, 0.5f);
+			c.centre.Set(0.5f, 0.75f, 0.5f);
 		else
-			c.centre.Set(0.75f, 0.25f, 0.5f);
+			c.centre.Set(0.5f, 0.25f, 0.5f);
 		o->collisions.push_back(c);
 		c.hitbox.Set(0.5f, 1, 1);
 		c.centre.Set(0.25f, 0.5f, 0.5f);
 		o->collisions.push_back(c);
 		break;
 	case -90:
-		c.hitbox.Set(0.5f, 0.5f, 1);
+		c.hitbox.Set(1, 0.5f, 1);
 		if (look == 90)
-			c.centre.Set(0.25f, 0.75f, 0.5f);
+			c.centre.Set(0.5f, 0.75f, 0.5f);
 		else
-			c.centre.Set(0.25f, 0.25f, 0.5f);
+			c.centre.Set(0.5f, 0.25f, 0.5f);
 		o->collisions.push_back(c);
 		c.hitbox.Set(0.5f, 1, 1);
 		c.centre.Set(0.75f, 0.5f, 0.5f);
@@ -321,6 +329,9 @@ void MinScene::ObtainBlockList()
 		unsigned count = worldLivingThings[j].size();
 		for (unsigned i = 0; i < count; ++i)
 		{
+			if (!worldLivingThings[j][i]->IsActive())
+				continue;
+
 			if (camera->position.DistSquared(worldLivingThings[j][i]->position) < RenderDist * RenderDist)
 				LivingThings[j].push_back(worldLivingThings[j][i]);
 		}
@@ -423,7 +434,7 @@ void MinScene::PartitionCollision()
 					{
 						for (int z = Position.z - 1; z < Position.z + 1; ++z)
 						{
-							if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+							if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 							{
 								if (worldBlockList[x][y][z])
 									LivingThings[j][i]->collisionBlockList.push_back(worldBlockList[x][y][z]);
@@ -443,7 +454,7 @@ void MinScene::PartitionCollision()
 		{
 			for (int z = Position.z - 1; z < Position.z + 1; ++z)
 			{
-				if (x >= 0 && x < worldX - 1 && y >= 0 && y < worldY - 1 && z >= 0 && z < worldZ - 1)
+				if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 				{
 					if (worldBlockList[x][y][z])
 						player.collisionBlockList.push_back(worldBlockList[x][y][z]);
@@ -584,7 +595,10 @@ void MinScene::Update_LevelEditor(double dt)
 }
 void MinScene::Update_Game(double dt)
 {
-	player.inventory.Update(dt);
+	if (InTheZone)
+		player.inventory.Update(dt * 4);
+	else
+		player.inventory.Update(dt);
 
 	if (player.getSelectedItem())
 	{
@@ -646,6 +660,9 @@ void MinScene::Update(double dt)
 	}
 	PartitionCollision();
 
+	player.Update(dt, false);
+	soundUpdate(player);
+
 	if (InTheZone)
 	{
 		ZoneBar -= dt;
@@ -686,16 +703,13 @@ void MinScene::Update(double dt)
 	else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
 		bNButtonPressed = false;
 
-	player.Update(dt, false);
-	soundUpdate(player);
-
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
 		unsigned count = LivingThings[j].size();
 
 		for (int i = 0; i < count; ++i)
 		{
-			if (LivingThings[j][i]->IsDead())
+			if (LivingThings[j][i]->IsDead() || !LivingThings[j][i]->IsActive())
 				continue;
 
 			LivingThings[j][i]->Update(dt, false);
@@ -704,15 +718,15 @@ void MinScene::Update(double dt)
 			{
 				Block arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
 
-				if (LivingThings[j][i]->IsDead())
+				if (LivingThings[j][i]->IsDead()) 
 				{
 					unsigned count2 = LivingThings[j][i]->collisionBlockList.size();
 					for (unsigned k = 0; k < count2; ++k)
 					{
-						if (Block::checkCollision(*LivingThings[j][i]->collisionBlockList[k], arrow))
+						if (Block::checkCollision(*LivingThings[j][i]->collisionBlockList[k], arrow)) //When collide with block,
 						{
 							for (unsigned l = 0; l < 5; ++l)
-								SpawnParticle(LivingThings[j][i]->position, LivingThings[j][i]->collisionBlockList[k]->id);
+								SpawnParticle(LivingThings[j][i]->position, LivingThings[j][i]->collisionBlockList[k]->id); //Spawn particles
 						}
 					}
 					continue;
@@ -720,32 +734,53 @@ void MinScene::Update(double dt)
 			
 				for (unsigned j2 = 0; j2 < NumEntities; ++j2) //Check with the other entities
 				{
-					if (j2 == 4) //Which are not arrows
+					if (j2 == Entity::ARROW || j2 == Entity::DROP) //Which are not arrows/drops
 						continue;
 
+					bool collided = false; //breaking case
 					unsigned count2 = LivingThings[j2].size();
+
 					for (unsigned k = 0; k < count2; ++k)
 					{
 						Block NPC(LivingThings[j2][k]->position, LivingThings[j2][k]->collision.centre, LivingThings[j2][k]->collision.hitbox);
+
 						if (Block::checkCollision(arrow, NPC)) //If arrow collide with entity
 						{
 							LivingThings[j2][k]->Knockback(LivingThings[j][i]->velocity); //Knockback entity
+							for (unsigned l = 0; l < 10; ++l) //Generate Blood
+								SpawnParticle(LivingThings[j][i]->position, 15);
 
 							Arrow* StuckedArrow = dynamic_cast<Arrow*>(LivingThings[j][i]); //Stuck arrow to entity
 							StuckedArrow->relativeOrientation = LivingThings[j2][k]->hOrientation;
 							StuckedArrow->relativePosition = LivingThings[j][i]->position - LivingThings[j2][k]->position;
-							LivingThings[j2][k]->StuckedArrows.push_back(StuckedArrow);
-
+							LivingThings[j2][k]->StuckedArrows.push_back(StuckedArrow); //Add arrow to internal list
 							LivingThings[j][i]->SetDead(true); 
+
+							if (LivingThings[j2][k]->health <= 0) //If the entity dies
+							{
+								for (unsigned l = 0; l < 10; ++l)
+									SpawnParticle(LivingThings[j][i]->position, 15); //Generate more blood
+
+								LivingThings[j2][k]->ClearArrows();
+								LivingThings[j2][k]->SetActive(false);
+
+								for (unsigned i = 0; i < 10; i++)
+								{
+									Entity* meat = FetchEntity(Entity::DROP);
+									meat->position = LivingThings[j2][k]->position;
+									meat->velocity.Set(rand() % 21 - 10, rand() % 16 + 5, rand() % 21 - 10);
+								}
+
+								LivingThings[j2].erase(LivingThings[j2].begin() + k);
+							}
+
+							collided = true;
 							break;
 						}
 					}
 
-					if (LivingThings[j][i]->IsDead())
+					if (collided)
 					{
-						for (unsigned l = 0; l < 10; ++l)
-							SpawnParticle(LivingThings[j][i]->position, 15);
-
 						LivingThings[j].erase(LivingThings[j].begin() + i); //Remove from list
 
 						count2 = worldLivingThings[j].size();
@@ -759,6 +794,7 @@ void MinScene::Update(double dt)
 						}
 
 						--i;
+						--count;
 						break;
 					}
 				}
@@ -777,6 +813,9 @@ void MinScene::Update(double dt)
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
+		if (j == Entity::ARROW)
+			continue;
+
 		unsigned count = LivingThings[j].size();
 		for (unsigned i = 0; i < count; ++i)
 		{
@@ -788,9 +827,6 @@ void MinScene::Update(double dt)
 				{
 					selectedEntity = LivingThings[j][i];
 					dist = rayDist;
-
-					if (LivingThings[j][i]->id == 3)
-						tooltip = "Press [E] to mount horse.";
 				}
 			}
 		}
@@ -821,17 +857,56 @@ void MinScene::Update(double dt)
 			player.mount->climbHeight = 0.5f;
 			player.mount = NULL;
 		}
-		else if (selectedEntity && selectedEntity->id == 3)
-		{
-			player.mount = selectedEntity;
-			player.mount->climbHeight = 1;
-		}
 	}
 	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
 		bEButtonPressed = false;
 
+	if (selectedEntity)
+	{
+		switch (selectedEntity->entityID)
+		{
+		case Entity::HORSE:
+		{
+			tooltip = "[E] Mount"; break;
+		}
+		case Entity::DROP:
+			tooltip = "[E] Loot"; break;
+		}
+
+		if (bEButtonPressed)
+		{
+			switch (selectedEntity->entityID)
+			{
+			case Entity::HORSE:
+			{
+				if (!player.mount)
+				{
+					player.mount = selectedEntity;
+					player.mount->climbHeight = 1;
+				}
+				break;
+			}
+			case Entity::DROP:
+			{
+				selectedEntity->SetActive(false);
+				/*unsigned count = LivingThings[Entity::DROP].size();
+				for (unsigned i = 0; i < count; ++i)
+				{
+					if (LivingThings[Entity::DROP][i] == selectedEntity)
+					{
+
+					}
+				}*/
+				break;
+			}
+			default:
+				break;
+			}
+		}
+	}
+
 	if (player.mount)
-		tooltip = "Press [E] to dismount.";
+		tooltip = "[E] Dismount";
 
 	if (player.noClip)
 		Update_LevelEditor(dt);
@@ -865,6 +940,34 @@ void MinScene::Update(double dt)
 }
 Entity* MinScene::FetchEntity(unsigned id)
 {
+	switch (id)
+	{
+	case Entity::DROP:
+	{
+		unsigned count = LivingThings[Entity::DROP].size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			if (!LivingThings[Entity::DROP][i]->IsActive())
+			{
+				LivingThings[Entity::DROP][i]->SetActive(true);
+				LivingThings[Entity::DROP][i]->hOrientation = rand() % 360;
+				return LivingThings[Entity::DROP][i];
+			}
+		}
+
+		Drop* drop = new Drop();
+		drop->hOrientation = rand() % 360;
+		drop->entityID = Entity::DROP;
+		drop->collision.hitbox.Set(0.35f, 0.04f, 0.35f);
+		drop->collision.centre.Set(0, 0.02f, 0);
+
+		LivingThings[Entity::DROP].push_back(drop);
+		worldLivingThings[Entity::DROP].push_back(drop);
+		return drop;
+	}
+	default:
+		return NULL;
+	}
 	//if (id != 4)
 	//{
 	//	unsigned count = worldLivingThings[id].size();
@@ -909,12 +1012,12 @@ bool MinScene::GenerateArrow(Entity & source, float strength)
 	arrow->hOrientation = source.hOrientation;
 	arrow->vOrientation = source.vOrientation;
 	arrow->climbHeight = 0.f;
-	arrow->id = 4;
-	arrow->collision.hitbox.Set(0.5f, 0.5f, 0.5f);
+	arrow->entityID = Entity::ARROW;
+	arrow->collision.hitbox.Set(0.4f, 0.4f, 0.4f);
 	arrow->collision.centre.Set(0, 0, 0);
 
-	LivingThings[4].push_back(arrow);
-	worldLivingThings[4].push_back(arrow);
+	LivingThings[Entity::ARROW].push_back(arrow);
+	worldLivingThings[Entity::ARROW].push_back(arrow);
 
 	return true;
 }
@@ -979,30 +1082,30 @@ void MinScene::Render()
 	RenderScene();
 	glUniform1i(m_parameters[U_FOG_ENABLED], 0);
 
-
 	glDisable(GL_DEPTH_TEST);
-	//projection.SetToPerspective(30, 16.f / 9.f, 0.1f, 10000.f);
-	//projectionStack.LoadMatrix(projection);
-	glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
+
 	viewStack.LoadIdentity();
 	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
 
-	if (player.getSelectedItem())
+	if (!player.noClip)
 	{
-		modelStack.PushMatrix();
-		player.getSelectedItem()->RenderItem(modelStack);
-		RenderMesh(player.getSelectedItem()->mesh, true);
-		modelStack.PopMatrix();
-
-		if (player.getSelectedItem()->itemID == CItem::BOW)
+		if (player.getSelectedItem())
 		{
-			CBow* theBow = dynamic_cast<CBow*>(player.getSelectedItem());
-			if (theBow->Charge > 0.3f)
+			modelStack.PushMatrix();
+			player.getSelectedItem()->RenderItem(modelStack);
+			RenderMesh(player.getSelectedItem()->mesh, true);
+			modelStack.PopMatrix();
+
+			if (player.getSelectedItem()->itemID == CItem::BOW)
 			{
-				modelStack.PushMatrix();
-				theBow->RenderArrow(modelStack);
-				RenderMesh(meshList["ARROW"], true);
-				modelStack.PopMatrix();
+				CBow* theBow = dynamic_cast<CBow*>(player.getSelectedItem());
+				if (theBow->Charge > 0.3f)
+				{
+					modelStack.PushMatrix();
+					theBow->RenderArrow(modelStack);
+					RenderMesh(meshList["ARROW"], true);
+					modelStack.PopMatrix();
+				}
 			}
 		}
 	}
@@ -1032,10 +1135,11 @@ void MinScene::RenderEntities_GPass()
 		meshList["WOLF_LEG"],
 		meshList["WOLF_TAIL"] };
 	vector<Mtx44> HorseMMat;
+	vector<Mtx44> DropMMat;
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
-		if (j == 4)
+		if (j == Entity::ARROW)
 			continue;
 
 		unsigned count = LivingThings[j].size();
@@ -1050,7 +1154,14 @@ void MinScene::RenderEntities_GPass()
 			modelStack.Translate(LivingThings[j][i]->position);
 			modelStack.Rotate(LivingThings[j][i]->hOrientation, 0, 1, 0);
 
-			if (j == 3)
+			if (j == Entity::DROP)
+			{
+				DropMMat.push_back(modelStack.Top());
+				modelStack.PopMatrix();
+				continue;
+			}
+
+			if (j == Entity::HORSE)
 			{
 				HorseMMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
@@ -1059,7 +1170,7 @@ void MinScene::RenderEntities_GPass()
 
 			float rotation = LivingThings[j][i]->getSkeletalRotation();
 
-			if (j == 5)
+			if (j == Entity::WOLF)
 			{
 				WolfMMat[0].push_back(modelStack.Top());
 				WolfMMat[1].push_back(modelStack.Top());
@@ -1118,6 +1229,8 @@ void MinScene::RenderEntities_GPass()
 
 	if (HorseMMat.size() > 0)
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
+	if (DropMMat.size() > 0)
+		RenderInstance(meshList["MEAT"], DropMMat.size(), &DropMMat[0], true);
 }
 
 void MinScene::RenderEntities()
@@ -1141,6 +1254,7 @@ void MinScene::RenderEntities()
 		meshList["WOLF_TAIL"] };
 	vector<Mtx44> HorseMMat;
 	vector<Mtx44> ArrowMMat;
+	vector<Mtx44> DropMMat;
 
 	for (unsigned j = 0; j < NumEntities; ++j)
 	{
@@ -1152,7 +1266,8 @@ void MinScene::RenderEntities()
 
 			modelStack.PushMatrix();
 			modelStack.Translate(LivingThings[j][i]->position);
-			if (j != 4)
+
+			if (j != Entity::ARROW && j != Entity::DROP)
 			{
 				unsigned count2 = LivingThings[j][i]->StuckedArrows.size();
 				for (unsigned k = 0; k < count2; ++k)
@@ -1166,27 +1281,44 @@ void MinScene::RenderEntities()
 					modelStack.PopMatrix();
 				}
 			}
+
 			modelStack.Rotate(LivingThings[j][i]->hOrientation, 0, 1, 0);
-			if (j == 3)
+
+			if (j == Entity::DROP)
+			{
+				DropMMat.push_back(modelStack.Top());
+				modelStack.PopMatrix();
+				continue;
+			}
+			
+			if (j == Entity::HORSE)
 			{
 				modelStack.Scale(LivingThings[j][i]->size);
 				HorseMMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
 				continue;
 			}
-			if (j == 4)
+
+			if (j == Entity::ARROW)
 			{
 				modelStack.Rotate(-LivingThings[j][i]->vOrientation, 1, 0, 0);
 				ArrowMMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
 				continue;
 			}
+
 			float rotation = LivingThings[j][i]->getSkeletalRotation();
 
-			if (j == 5)
+			if (j == Entity::WOLF)
 			{
-				WolfMMat[0].push_back(modelStack.Top());
 				WolfMMat[1].push_back(modelStack.Top());
+
+				modelStack.PushMatrix();
+				modelStack.Translate(0, 0, 0.407f);
+				modelStack.Rotate(LivingThings[j][i]->headOrientation, 0, 1, 0);
+				modelStack.Translate(0, 0, -0.407f);
+				WolfMMat[0].push_back(modelStack.Top());
+				modelStack.PopMatrix();
 
 				modelStack.PushMatrix();
 				modelStack.Translate(0, 0.68125f, -0.561f);
@@ -1291,6 +1423,8 @@ void MinScene::RenderEntities()
 		RenderInstance(meshList["HORSE"], HorseMMat.size(), &HorseMMat[0], true);
 	if (ArrowMMat.size() > 0)
 		RenderInstance(meshList["ARROW"], ArrowMMat.size(), &ArrowMMat[0], true);
+	if (DropMMat.size() > 0)
+		RenderInstance(meshList["MEAT"], DropMMat.size(), &DropMMat[0], true);
 }
 
 void MinScene::RenderBlocks_GPass()

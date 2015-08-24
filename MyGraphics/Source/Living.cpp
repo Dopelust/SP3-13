@@ -1,7 +1,7 @@
 #include "Living.h"
 #include "Utility.h"
 
-Living::Living()
+Living::Living() : timeToStop(0), timeToGo(0)
 {
 	timeToGo = rand() % 10 + 1;
 }
@@ -17,21 +17,28 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	if (timeToGo > 0)
 	{
+		if (newOrientation > hOrientation)
+			Rise(hOrientation, dt * 25, newOrientation);
+		else if (newOrientation < hOrientation)
+			Fall(hOrientation, dt * 25, newOrientation);
+
 		Vector3 dir; dir.SphericalToCartesian(hOrientation, 0);
 		velocity.x = dir.x; velocity.z = dir.z;
 
 		Fall(timeToGo, dt, 0);
 
 		if (timeToGo == 0)
-			timeToStop = rand() % 5 + 1;
+			timeToStop = rand() % 8 + 3;
 	}
 	else if (timeToStop > 0)
 	{
-		hOrientation += dt * 5;
 		Fall(timeToStop, dt, 0);
 
 		if (timeToStop == 0)
+		{
 			timeToGo = rand() % 10 + 1;
+			newOrientation = hOrientation + (rand() % 181 - 90);
+		}
 	}
 
 	position += velocity * dt;
@@ -69,6 +76,22 @@ void Living::Animate(double dt)
 
 		Rise(Steps, dt * 300, valueToRise);
 	}
+
+	if (timeToStop > 0)
+	{
+		headBob += dt * 100;
+	}
+	else if ((int)headBob % 180 != 0)
+	{
+		int valueToRise = headBob;
+		while (valueToRise % 180 != 0)
+		{
+			valueToRise++;
+		}
+
+		Rise(headBob, dt * 100, valueToRise);
+	}
+	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
 }
 
 Arrow::Arrow() : relativePosition(0,0,0), relativeOrientation(0)
@@ -125,6 +148,168 @@ void Arrow::RespondToCollision(const vector<Block*>& object)
 		}
 	}
 
+}
+
+Drop::Drop()
+{
+}
+
+Drop::~Drop()
+{
+}
+
+void Drop::Update(double dt, bool RestrictMovement)
+{
+	initialPos = position;
+	initialVel = velocity;
+
+	position += velocity * dt;
+	
+	velocity.x += -velocity.x * 2 * dt;
+	velocity.z += -velocity.z * 2 * dt;
+	velocity.y -= 30 * dt;
+	if (velocity.x > -0.1f && velocity.x < 0.1f)
+		velocity.x = 0;
+	if (velocity.z > -0.1f && velocity.z < 0.1f)
+		velocity.z = 0;
+
+	hOrientation += Vector3(velocity.x, 0, velocity.z).LengthSquared() * dt * 300;
+
+	RespondToCollision(this->collisionBlockList);
+}
+
+void Drop::RespondToCollision(const vector<Block*>&object)
+{
+	vector<Block> collidedBlocks;
+	vector<float> penetrationArea;
+
+	Block Player(position, collision.centre, collision.hitbox);
+
+	unsigned count = object.size();
+	for (unsigned i = 0; i < count; ++i)
+	{
+		if (object[i]->type == Block::STAIR)
+		{
+			for (unsigned j = 0; j < object[i]->collisions.size(); ++j)
+			{
+				Block Blk(object[i]->position, object[i]->collisions[j].centre, object[i]->collisions[j].hitbox);
+				Blk.id = object[i]->id;
+
+				if (Block::checkCollision(Player, Blk))
+				{
+					float area = Block::PenetrationDepth(Player, Blk);
+
+					if (collidedBlocks.empty())
+					{
+						collidedBlocks.push_back(Blk);
+						penetrationArea.push_back(area);
+					}
+					else
+					{
+						unsigned A = penetrationArea.size();
+
+						for (unsigned a = 0; a <= A; ++a)
+						{
+							if (a == A)
+							{
+								collidedBlocks.push_back(Blk);
+								penetrationArea.push_back(area);
+								break;
+							}
+							else if (area >= penetrationArea[a])
+							{
+								collidedBlocks.insert(collidedBlocks.begin() + a, Blk);
+								penetrationArea.insert(penetrationArea.begin() + a, area);
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+		else
+		{
+			if (Block::checkCollision(Player, *object[i]))
+			{
+				float area = Block::PenetrationDepth(Player, *object[i]);
+
+				if (collidedBlocks.empty())
+				{
+					collidedBlocks.push_back(*object[i]);
+					penetrationArea.push_back(area);
+				}
+				else
+				{
+					unsigned A = penetrationArea.size();
+
+					for (unsigned a = 0; a <= A; ++a)
+					{
+						if (a == A)
+						{
+							collidedBlocks.push_back(*object[i]);
+							penetrationArea.push_back(area);
+							break;
+						}
+						else if (area >= penetrationArea[a])
+						{
+							collidedBlocks.insert(collidedBlocks.begin() + a, *object[i]);
+							penetrationArea.insert(penetrationArea.begin() + a, area);
+							break;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	Vector3 maxPlayer = initialPos + Player.collision.centre + Player.collision.hitbox  * 0.5f;
+	Vector3 minPlayer = initialPos + Player.collision.centre - Player.collision.hitbox * 0.5f;
+
+	count = collidedBlocks.size();
+	for (unsigned i = 0; i < count; ++i)
+	{
+		Block P(position, collision.centre, collision.hitbox);
+		if (Block::checkCollision(P, collidedBlocks[i]))
+		{
+			Vector3 maxCube = collidedBlocks[i].getMaxCoord();
+			Vector3 minCube = collidedBlocks[i].getMinCoord();
+
+			if (maxPlayer.z >= maxCube.z && minPlayer.z >= maxCube.z)
+			{
+				velocity.z = -velocity.z * 0.5f;
+				position.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
+			}
+			else if (maxPlayer.z <= minCube.z && minPlayer.z <= minCube.z)
+			{
+				velocity.z = -velocity.z * 0.5f;
+				position.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
+			}
+			else if (maxPlayer.x >= maxCube.x && minPlayer.x >= maxCube.x)
+			{
+				velocity.x = -velocity.x * 0.5f;
+				position.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
+			
+			}
+			else if (maxPlayer.x <= minCube.x && minPlayer.x <= minCube.x)
+			{
+				velocity.x = -velocity.x * 0.5f;
+				position.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
+			}
+			else if (maxPlayer.y >= maxCube.y && minPlayer.y >= maxCube.y)
+			{
+				position.y = maxCube.y + eps;
+				velocity.y = -velocity.y * 0.5f;
+
+				if (velocity.y > -1.f && velocity.y < 1.f)
+					velocity.y = 0;
+			}
+			else if (maxPlayer.y <= minCube.y && minPlayer.y <= minCube.y) //bump head
+			{
+				position.y = minCube.y - Player.collision.hitbox.y;
+				velocity.y = -velocity.y;
+			}
+		}
+	}
 }
 
 Enemy::Enemy()

@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#define NumEntities 6 //Enemy1, Enemy2, Enemy3, Horse, Arrow, Wolf
+#define NumEntities 7
 
 using namespace::std;
 
@@ -26,6 +26,7 @@ public:
 		HORSE,
 		ARROW,
 		WOLF,
+		DROP,
 		NUM_ENTITIES,
 	};
 
@@ -40,7 +41,8 @@ public:
 	Collision collision;
 	vector<Block*> collisionBlockList;
 
-	unsigned id;
+	unsigned entityID;
+	float headOrientation;
 	float hOrientation;
 	float vOrientation;
 
@@ -65,8 +67,10 @@ public:
 	virtual float getSkeletalRotation();
 	void Knockback(Vector3 dir);
 	vector<Arrow*> StuckedArrows;
+	void ClearArrows();
 
 	float Steps;
+	float health;
 protected:
 	bool active;
 	bool dead;

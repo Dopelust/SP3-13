@@ -8,8 +8,6 @@ CBow::CBow(void) : translation(1.6f, -0.5f, -2.6f)
 {
 	currentWeapbobX = 0;
 	currentWeapbobY = 0;
-	bowBobY = 0;
-	BobYAmount = 45;
 
 	itemID = CItem::BOW;
 }
@@ -46,9 +44,8 @@ void CBow::Bob(double dt)
 void CBow::BobY(double dt)
 {
 	BobYAmount +=  dt * 150;
-	bowBobY = cos(Math::DegreeToRadian(BobYAmount) * 2) * 0.03f;
+	bobY = cos(Math::DegreeToRadian(BobYAmount) * 2) * 0.03f;
 }
-
 
 void CBow::RenderItem(MS& modelStack)
 {
@@ -58,7 +55,7 @@ void CBow::RenderItem(MS& modelStack)
 	else
 		C -= 0.5f;
 
-	modelStack.Translate(translation.x + currentWeapbobX, translation.y + currentWeapbobY + bowBobY, translation.z);
+	modelStack.Translate(translation.x + currentWeapbobX, translation.y + currentWeapbobY + bobY, translation.z);
 	modelStack.Rotate(15, 0, 1, 0);
 	modelStack.Rotate(15, 1, 0, 0);
 	modelStack.Scale(1, 0.75f, 1 + C);
@@ -69,7 +66,7 @@ void CBow::RenderArrow(MS& modelStack)
 	float C = Charge * 2;
 	C = C > 1 ? 1 : C;
 
-	modelStack.Translate((C * translation.x) + currentWeapbobX, (C * translation.y) + currentWeapbobY + bowBobY, translation.z - 0.4f + Charge);
+	modelStack.Translate((C * translation.x) + currentWeapbobX, (C * translation.y) + currentWeapbobY + bobY, translation.z - 0.4f + Charge);
 	modelStack.Rotate((C * 15), 0, 1, 0);
 	modelStack.Rotate((C * 10), 1, 0, 0);
 	modelStack.Rotate(180, 0, 1, 0);

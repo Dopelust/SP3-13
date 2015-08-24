@@ -7,7 +7,7 @@ using namespace irrklang;
 
 extern ISoundEngine * engine;
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f)
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientation(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f), health(100)
 {
 	active = true;
 }
@@ -35,7 +35,7 @@ void Entity::Knockback(Vector3 dir)
 
 	vector<char*> soundFileName;
 
-	if (id == HORSE)
+	if (entityID == HORSE)
 	{
 		soundFileName.push_back("Assets/Media/Damage/horseCry1.mp3");
 		soundFileName.push_back("Assets/Media/Damage/horseCry2.mp3");
@@ -55,6 +55,8 @@ void Entity::Knockback(Vector3 dir)
 		sound->setVolume(1.f);
 		sound->setIsPaused(false);
 	}
+
+	health -= dir.LengthSquared() / 100;
 }
 
 bool Entity::IsActive()
@@ -64,6 +66,15 @@ bool Entity::IsActive()
 void Entity::SetActive(bool active)
 {
 	this->active = active;
+}
+
+void Entity::ClearArrows()
+{
+	while (!StuckedArrows.empty())
+	{
+		delete StuckedArrows.back();
+		StuckedArrows.pop_back();
+	}
 }
 
 bool Entity::IsDead()

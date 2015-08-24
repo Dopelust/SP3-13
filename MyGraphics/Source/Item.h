@@ -33,6 +33,32 @@ public:
 
 	virtual float getCharge();
 	virtual void setCharge(float Charge);
+
+	float currentWeapbobX;
+	float currentWeapbobY;
+	float bobY;
+	float BobYAmount;
+};
+
+class CFood : public CItem
+{
+private:
+	unsigned HP;
+public:
+	CFood(void);
+	~CFood(void);
+
+	Vector3 translation;
+	void setHP(unsigned);
+	unsigned getHP(void);
+	float Charge;
+
+	void Update(double dt);
+	void Bob(double dt);
+	void BobY(double dt);
+	void RenderItem(MS& modelStack);
+
+
 };
 
 class CWeapon : public CItem

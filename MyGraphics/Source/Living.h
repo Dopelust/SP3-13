@@ -9,11 +9,24 @@ public:
 	Living();
 	~Living();
 
+	float headBob;
+	float newOrientation;
+
 	float timeToStop;
 	float timeToGo;
 
 	virtual void Update(double dt, bool RestrictMovement);
 	void Animate(double dt);
+};
+
+class Drop : public Entity
+{
+public:
+	Drop();
+	~Drop();
+
+	void Update(double dt, bool RestrictMovement);
+	void RespondToCollision(const vector<Block*>&object);
 };
 
 class Arrow : public Entity

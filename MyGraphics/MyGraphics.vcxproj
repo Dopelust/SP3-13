@@ -94,7 +94,6 @@
     <ClCompile Include="Source\Camera3.cpp" />
     <ClCompile Include="Source\DepthFBO.cpp" />
     <ClCompile Include="Source\Entity.cpp" />
-    <ClCompile Include="Source\Food.cpp" />
     <ClCompile Include="Source\Frustum.cpp" />
     <ClCompile Include="Source\GBuffer.cpp" />
     <ClCompile Include="Source\Block.cpp" />
@@ -124,7 +123,6 @@
     <ClInclude Include="Source\Camera3.h" />
     <ClInclude Include="Source\DepthFBO.h" />
     <ClInclude Include="Source\Entity.h" />
-    <ClInclude Include="Source\Food.h" />
     <ClInclude Include="Source\Frustum.h" />
     <ClInclude Include="Source\GBuffer.h" />
     <ClInclude Include="Source\Inventory.h" />
