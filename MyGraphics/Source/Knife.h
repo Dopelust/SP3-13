@@ -14,12 +14,16 @@ public:
 	float currentWeapbobY;
 	float weapbobAmountX;
 	float weapbobAmountY;
-	float movement;
-	int delay;
-	float jabRot;
-	bool startJab;
-	bool endJab;
-	bool jump;
+	float stabForward;
+	float Rotating;
+	float takeoutRot;
+	float takeoutRise;
+	bool takeout;
+	bool Stabbing;
+
+
+	void Bob(double dt);
+	void Stab(double dt);
 
 	Vector3 translation;
 

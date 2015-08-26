@@ -186,6 +186,10 @@ void SceneBase::InitMesh()
 	meshList["WOLF_TAIL"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Tail.obj");
 	meshList["WOLF_LEG"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Leg.obj");
 
+	textureID["MAP"] = Load2DTGA("Assets//map.tga", false, false);
+	textureID["MAP_LION"] = Load2DTGA("Assets//lion.tga", false, false);
+	textureID["MAP_CASTLE"] = Load2DTGA("Assets//castle.tga", false, false);
+	textureID["MAP_PLAYER"] = Load2DTGA("Assets//player.tga", false, false);
 	textureID["SLOT"] = Load2DTGA("Assets//Slot.tga", false, false);
 	textureID["SELECTOR"] = Load2DTGA("Assets//Selector.tga", false);
 	textureID["SKYBOX"] = LoadTGA("Assets//Skybox.tga");

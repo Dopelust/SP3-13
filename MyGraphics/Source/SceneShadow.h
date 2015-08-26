@@ -51,6 +51,9 @@ protected:
 	Mtx44 m_lightDepthProj;
 	Mtx44 m_lightDepthView;
 	RENDER_PASS m_renderPass;
+
+	Vector3 minShadowCoord;
+	Vector3 maxShadowCoord;
 };
 
 #endif

@@ -10,6 +10,7 @@ Header file for the Project/SP Scene.
 #ifndef PROJECT_SCENE_H
 #define PROJECT_SCENE_H
 
+#include "Minimap.h"
 #include "Frustum.h"
 #include "Living.h"
 #include "SceneShadow.h"
@@ -57,8 +58,10 @@ private:
 	vector<Entity*> LivingThings[NumEntities];
 	vector<Entity*> worldLivingThings[NumEntities];
 
-	unsigned worldBlocks;
 	Block* selectedBlock;
+	Entity* selectedEntity;
+
+	unsigned worldBlocks;
 	Block* worldBlockList[worldX][worldY][worldZ];
 	vector<Block*> blockList;
 	vector<Block*> alphaBlockList;
@@ -74,6 +77,7 @@ private:
 	void RenderScene();
 	void RenderSkybox();
 	void Render2D();
+	void RenderMap();
 
 	unsigned nextUpdate;
 	float RenderDist;
@@ -83,6 +87,12 @@ private:
 
 	bool Save(const char* filepath);
 	bool Load(const char* filepath);
+
+	bool LoadWinterfell();
+	bool LoadOutpost();
+	bool LoadLionsDen();
+	bool LoadCastleBlack();
+
 	bool GenerateWorld(Vector3 size);
 
 	bool Convert(const char* filepath);
@@ -90,6 +100,10 @@ private:
 	float ZoneBar;
 	float MaxZoneTime;
 	bool InTheZone;
+
+	bool showMap;
+	Waypoint playerWaypoint;
+	vector<Waypoint> waypointList;
 };
 
 #endif

@@ -171,6 +171,19 @@ void Application::Init()
 	inData.close (); 
 }
 
+void Application::ResetCursorPos()
+{
+	glfwSetCursorPos(m_window, double(m_width)*0.5f, double(m_height)*0.5f);
+}
+
+void Application::HideCursor(bool hideCursor)
+{
+	if (hideCursor)
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+	else
+		glfwSetInputMode(m_window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+}
+
 bool Application::getKeyboardUpdate()
 {
 	if(IsKeyPressed('W'))
@@ -225,7 +238,7 @@ void Application::Run()
 {
 	scene = new MinScene;
 	scene->Init();
-	glfwSetCursorPos(m_window, double(m_width)/2, double(m_height)/2);
+	ResetCursorPos();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
 	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_ESCAPE))
@@ -234,7 +247,6 @@ void Application::Run()
 		scene->Update(m_timer.getElapsedTime());
 		scene->Render();
 		
-		glfwSetCursorPos(m_window, double(m_width)/2, double(m_height)/2);
 		//Swap buffers
 		glfwSwapBuffers(m_window);
 		//Get and organize events, like keyboard and mouse input, window resizing, etc...

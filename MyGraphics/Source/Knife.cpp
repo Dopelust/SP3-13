@@ -1,15 +1,19 @@
 #include "Knife.h"
 #include "Application.h"
 
+extern ISoundEngine * engine;
+
 CKnife::CKnife(void) : translation(1, -0.5f, -1.5f)
 {
 	currentWeapbobX = 0;
 	currentWeapbobY = 0;
-	weapbobAmountX = 0;
-	weapbobAmountY = 0;
-	movement = 0;
-	jabRot = 0;
-	jump = false;
+	stabForward = (-0.5);
+	Stabbing = false;
+	Rotating = 0;
+	bool takeout = false;
+	takeoutRot = 180;
+
+	itemID = CItem::KNIFE;
 }
 
 CKnife::~CKnife(void)
@@ -19,61 +23,105 @@ CKnife::~CKnife(void)
 void CKnife::Update(double dt)
 {
 
-	if (Application::IsKeyPressed(VK_CONTROL))
+	if (Application::IsMousePressed(0) && stabForward == 0)
 	{
-		movement += (float)(500 * dt);
-	}
-	else
-	{
-		movement += (float)(380 * dt);
-	}
-
-	weapbobAmountX = 3;
-	weapbobAmountY = 10;
-	currentWeapbobX = sin(Math::DegreeToRadian(movement)) * weapbobAmountX * 0.01;
-	currentWeapbobY = cos(Math::DegreeToRadian(movement) * 2) * weapbobAmountY * 0.01;
-	//find the distance
-	Vector3 distance, jabDist;
-	distance.x = 1.5f - translation.x;
-	distance.y = -0.5f - translation.y;
-	distance.Normalize();
-
-	jabDist.z = -3.f - translation.z;
-	jabDist.Normalize();
-
-	//if (Application::IsMousePressed(1))
-	//	Rise(Charge, dt, 1);
-	//else
-	//{
-	//	if (Charge > 0)
-	//		use = true;
-	//	Charge = 0.f;
-	//}
-
-	if (Application::IsKeyPressed('W') || Application::IsKeyPressed('A') || Application::IsKeyPressed('S') || Application::IsKeyPressed('D'))
-	{
-		translation.x = 1 + currentWeapbobX;
-		translation.y = -0.5f + currentWeapbobY;
-	}
-
-	if (!Application::IsKeyPressed('W') || !Application::IsKeyPressed('A') || !Application::IsKeyPressed('S') || !Application::IsKeyPressed('D'))
-	{
-		if (translation.x > 1.5)
+		char* soundFileLocation[3] = { "Assets/Media/Weapons/Stab1.mp3", "Assets/Media/Weapons/Stab2.mp3" , "Assets/Media/Weapons/Stab3.mp3" };
+		ISound* sound = engine->play2D(soundFileLocation[rand() % 3], false, true);
+		if (sound)
 		{
-			translation.x += distance.x * dt;
+			sound->setVolume(0.2f);
+			sound->setIsPaused(false);
 		}
-		if (translation.y > -0.5)
-		{
-			translation.y += distance.y * dt;
-		}
+		Stabbing = true;
+		use = true;
+	}
+	if (Application::IsMousePressed(0) && stabForward == -3)
+	{
+		Stabbing = false;
+	}
+	if (!Application::IsMousePressed(0) && stabForward == -3)
+	{
+		Stabbing = false;
+	}
+
+	if (Stabbing == true)
+	{
+		Fall(stabForward, dt * 30, -3);
+		Fall(Rotating, dt * 30, 90);
+		translation.y = -1;
+	}
+	if (stabForward == 0)
+	{
+		Rise(Rotating, dt * 20, 0);
+		translation.y = -0.5;
+	}
+	else if (Stabbing == false)
+	{
+		Rise(stabForward, dt * 20, 0);
+		translation.y = -1;
+	}
+
+	if (Application::IsKeyPressed('1'))
+	{
+		takeout = true;
+		//translation.y = -0;
+	}
+	if (takeout == true && Application::IsKeyPressed('1') || !Application::IsKeyPressed('1'))
+	{
+		Rise(takeoutRise, dt * 5, 1.5f);
+		Fall(takeoutRot, dt * 300, 0);
+		translation.y = -2;
+		/*cout << takeoutRise << endl;
+		cout << takeoutRot << endl;*/
+	}
+	if (!Application::IsKeyPressed('1') && takeoutRot == 0)
+	{
+		takeout = false;
+	}
+
+	if (takeout == false)
+	{
+		translation.y = -0.5f;
+		takeoutRise = 0;
+		takeoutRot = 180;
 	}
 
 
 }
 
+void CKnife::Bob(double dt)
+{
+	dt *= 350;
+	currentWeapbobX = sin(Math::DegreeToRadian(dt)) * 0.015f;
+	currentWeapbobY = cos(Math::DegreeToRadian(dt) * 2) * 0.05f;
+}
+
+/*void CKnife::Stab(double dt)
+{
+
+if(Application::IsMousePressed(0))
+{
+stabPeak = true;
+stabMin = false;
+cout << stabPeak << endl;
+cout << stabMin << endl;
+}
+if(stabPeak = true)
+{
+stabForward ++;
+}
+
+}*/
+
 void CKnife::RenderItem(MS& modelStack)
 {
-	modelStack.Translate(translation.x, translation.y, translation.z);
-	modelStack.Rotate(jabRot, -1, 0, 0);
-	modelStack.Scale(0.2, 0.2, 0.2);
+	modelStack.Translate(translation.x + currentWeapbobX, translation.y + currentWeapbobY + takeoutRise, translation.z + stabForward);
+	modelStack.Rotate(Rotating, -1, 0, 0);
+	if (takeout == true)
+	{
+		modelStack.Rotate(takeoutRot, -1, 0, 0);
+	}
+	modelStack.Scale(0.2);
+
+
 }

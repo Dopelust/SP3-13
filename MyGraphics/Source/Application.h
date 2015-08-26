@@ -33,6 +33,9 @@ public:
 	static float textspace[255];
 	static float getTextWidth(string t);
 
+	static void ResetCursorPos();
+	static void HideCursor(bool hideCursor);
+
 	static StopWatch m_timer;
 private:
 	//Declare a window object

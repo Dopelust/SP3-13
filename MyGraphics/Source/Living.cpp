@@ -176,6 +176,9 @@ void Drop::Update(double dt, bool RestrictMovement)
 	hOrientation += Vector3(velocity.x, 0, velocity.z).LengthSquared() * dt * 300;
 
 	RespondToCollision(this->collisionBlockList);
+
+	if (velocity.IsZero())
+		SetDead(true);
 }
 
 void Drop::RespondToCollision(const vector<Block*>&object)

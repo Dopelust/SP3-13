@@ -72,15 +72,24 @@ void MinScene::Init()
 	}
 	cout << "Initializing Objects..." << endl;
 
-	//GenerateWorld(Vector3(worldX, 1, worldZ));
-	Load("Save//save1.txt");
-	
+	//Load("Save//Winterfell.txt");
+	LoadOutpost();
+	LoadLionsDen();
+	LoadWinterfell();
+	LoadCastleBlack();
+	GenerateWorld(Vector3(worldX, 1, worldZ));
+
 	cout << worldBlocks <<  " Objects Initialized." << endl << endl;
 
+	player.position.Set(0, 0, 0);
 	camera->position = player.position; camera->position.y += player.eyeLevel;
 	soundInit();
 
-	for (unsigned i = 0; i < 128; ++i)
+	minShadowCoord.Set(-48, -24, -48);
+	maxShadowCoord.Set(48, 24, 48);
+	showMap = false;
+
+	for (unsigned i = 0; i < 256; ++i)
 	{
 		unsigned id = rand() % NumEntities;
 
@@ -145,6 +154,28 @@ void MinScene::Init()
 	CFood* Food = new CFood();
 	Food->mesh = meshList["MEAT"];
 	player.inventory.slot[2]->item = Food;
+
+	Waypoint w;
+	w.point.Set(93, 0);
+	w.name = "Castle Black";
+	w.texture = textureID["MAP_CASTLE"]; w.color.Set(0, 0, 0);
+	waypointList.push_back(w);
+	w.point.Set(-18, 45);
+	w.name = "Lion's Den";
+	w.texture = textureID["MAP_LION"]; w.color.Set(1, 1, 1);
+	waypointList.push_back(w);
+	w.point.Set(0, -82);
+	w.name = "Ruined Outpost";
+	w.texture = textureID["MAP_CASTLE"]; w.color.Set(0.5f, 0.5f, 0.5f);
+	waypointList.push_back(w);
+	w.point.Set(-92, 0);
+	w.name = "Winterfell";
+	w.texture = textureID["MAP_CASTLE"]; w.color.Set(1, 1, 1);
+	waypointList.push_back(w);
+
+	playerWaypoint.point.Set(player.position.x, player.position.z);
+	playerWaypoint.name = "Player";
+	playerWaypoint.texture = textureID["MAP_PLAYER"];
 }
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
@@ -607,6 +638,7 @@ void MinScene::Update_Game(double dt)
 			switch (player.getSelectedItem()->itemID)
 			{
 			case CItem::BOW:
+			{
 				GenerateArrow(player, (player.inventory.selectedSlot->item->getCharge() - 0.4f) * 64);
 				char* soundFileLocation[3] = { "Assets/Media/Weapons/shoot1.mp3", "Assets/Media/Weapons/shoot2.mp3" , "Assets/Media/Weapons/shoot3.mp3" };
 				ISound* sound = engine->play2D(soundFileLocation[rand() % 3], false, true);
@@ -616,6 +648,39 @@ void MinScene::Update_Game(double dt)
 					sound->setIsPaused(false);
 				}
 				break;
+			}
+			case CItem::KNIFE:
+				if (selectedEntity)
+				{
+					selectedEntity->Knockback((selectedEntity->position - camera->position) * 10);
+					for (unsigned l = 0; l < 5; ++l)
+						SpawnParticle(selectedEntity->position, 15);
+
+					if (selectedEntity->health <= 0) //If the entity dies
+					{
+						for (unsigned l = 0; l < 10; ++l)
+							SpawnParticle(selectedEntity->position, 15); //Generate more blood
+						
+						selectedEntity->ClearArrows();
+						selectedEntity->SetActive(false);
+
+						for (unsigned i = 0; i < 10; ++i)
+						{
+							Entity* meat = FetchEntity(Entity::DROP);
+							meat->position = selectedEntity->position;
+							meat->velocity.Set(rand() % 21 - 10, rand() % 16 + 5, rand() % 21 - 10);
+						}
+
+						unsigned count = LivingThings[selectedEntity->entityID].size();
+						for (unsigned i = 0; i < count; ++i)
+						{
+							if (LivingThings[selectedEntity->entityID][i] == selectedEntity)
+								LivingThings[selectedEntity->entityID].erase(LivingThings[selectedEntity->entityID].begin() + i);
+						}
+
+						selectedEntity = NULL;
+					}
+				}
 			}
 
 			player.getSelectedItem()->use = false;
@@ -653,7 +718,57 @@ void MinScene::Update(double dt)
 {
 	SceneBase::Update(dt);
 
-	if (elapsedTime >= (nextUpdate*0.5f))
+	static bool bMButtonPressed = false;
+
+	if (!bMButtonPressed && Application::IsKeyPressed('M'))
+	{
+		bMButtonPressed = true;
+
+		if (showMap)
+		{
+			Application::HideCursor(true);
+			minShadowCoord.Set(-48, -24, -48);
+			maxShadowCoord.Set(48, 24, 48);
+			showMap = false;
+		}
+		else
+		{
+			Application::HideCursor(false);
+			Application::ResetCursorPos();
+			lights[0].position.Set(0, 4, 0);
+			minShadowCoord.Set(-128, -24, -128);
+			maxShadowCoord.Set(128, 24, 128);
+			showMap = true;
+		}
+	}
+	else if (bMButtonPressed && !Application::IsKeyPressed('M'))
+		bMButtonPressed = false;
+
+	if (showMap)
+	{
+		elapsedTime += dt;
+		double x = 0;
+		double y = 0;
+		Application::GetCursorPos(&x, &y); y = Application::m_height - y;
+
+		for (unsigned i = 0; i < waypointList.size(); ++i)
+		{
+			Vector3 thePoint = waypointList[i].getWaypoint(worldX, worldZ, Application::m_height, Application::m_height);
+			if (x < thePoint.x + 16 && x > thePoint.x - 16 && y < thePoint.y + 16 && y > thePoint.y - 16)
+			{
+				waypointList[i].selected = true;
+				return;
+			}
+		}
+		
+		Vector3 thePoint = playerWaypoint.getWaypoint(worldX, worldZ, Application::m_height, Application::m_height);
+		if (x < thePoint.x + 16 && x > thePoint.x - 16 && y < thePoint.y + 16 && y > thePoint.y - 16)
+			playerWaypoint.selected = true;
+
+		return;
+	}
+
+	if (elapsedTime >= (nextUpdate*0.1f))
 	{
 		ObtainBlockList();
 		nextUpdate++;
@@ -662,6 +777,8 @@ void MinScene::Update(double dt)
 
 	player.Update(dt, false);
 	soundUpdate(player);
+	playerWaypoint.point.Set(player.position.x, player.position.z);
+	lights[0].position.Set(camera->position.x, 4, camera->position.z);
 
 	if (InTheZone)
 	{
@@ -802,10 +919,8 @@ void MinScene::Update(double dt)
 		}
 	}
 
-	lights[0].position.Set(camera->position.x, 4, camera->position.z);
-
 	tooltip.clear();
-	Entity* selectedEntity = NULL;
+	selectedEntity = NULL;
 	selectedBlock = NULL;
 
 	float dist = INT_MAX;
@@ -821,7 +936,7 @@ void MinScene::Update(double dt)
 		{
 			Block Blk(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
 			float rayDist = Blk.collisionWithRay(camera->position, view);
-			if (rayDist >= 0 && rayDist <= 5)
+			if (rayDist >= 0 && rayDist <= 2.5f)
 			{
 				if (rayDist < dist)
 				{
@@ -857,23 +972,7 @@ void MinScene::Update(double dt)
 			player.mount->climbHeight = 0.5f;
 			player.mount = NULL;
 		}
-	}
-	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
-		bEButtonPressed = false;
-
-	if (selectedEntity)
-	{
-		switch (selectedEntity->entityID)
-		{
-		case Entity::HORSE:
-		{
-			tooltip = "[E] Mount"; break;
-		}
-		case Entity::DROP:
-			tooltip = "[E] Loot"; break;
-		}
-
-		if (bEButtonPressed)
+		else if (selectedEntity)
 		{
 			switch (selectedEntity->entityID)
 			{
@@ -881,6 +980,14 @@ void MinScene::Update(double dt)
 			{
 				if (!player.mount)
 				{
+					char* soundFileLocation[3] = { "Assets/Media/Horse/horseRide1.mp3", "Assets/Media/Horse/horseRide2.mp3" , "Assets/Media/Horse/horseRide3.mp3" };
+					ISound* sound = engine->play2D(soundFileLocation[rand() % 3], false, true);
+					if (sound)
+					{
+						sound->setVolume(0.7f);
+						sound->setIsPaused(false);
+					}
+
 					player.mount = selectedEntity;
 					player.mount->climbHeight = 1;
 				}
@@ -902,6 +1009,21 @@ void MinScene::Update(double dt)
 			default:
 				break;
 			}
+		}
+	}
+	else if (bEButtonPressed && !Application::IsKeyPressed('E'))
+		bEButtonPressed = false;
+
+	if (selectedEntity)
+	{
+		switch (selectedEntity->entityID)
+		{
+		case Entity::HORSE:
+		{
+			tooltip = "[E] Mount"; break;
+		}
+		case Entity::DROP:
+			tooltip = "[E] Loot"; break;
 		}
 	}
 
@@ -932,11 +1054,13 @@ void MinScene::Update(double dt)
 
 	if (!bGButtonPressed && Application::IsKeyPressed('G'))
 	{
-		Save("Save//save1.txt"); Application::m_timer.getElapsedTime();
+		Save("Save//save.txt"); Application::m_timer.getElapsedTime();
 		bGButtonPressed = true;
 	}
 	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
 		bGButtonPressed = false;
+
+	Application::ResetCursorPos();
 }
 Entity* MinScene::FetchEntity(unsigned id)
 {
@@ -1055,6 +1179,90 @@ bool MinScene::RemoveBlock(Block* block)
 
 	return true;
 }
+
+void MinScene::RenderMap()
+{
+	double x = 0;
+	double y = 0;
+	Application::GetCursorPos(&x, &y); y = Application::m_height - y;
+
+	string text;
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.5f, 0);
+
+	modelStack.PushMatrix();
+	modelStack.Scale(Application::m_width, Application::m_height, 1);
+	meshList["QUAD"]->textureID = NULL;  RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+	modelStack.Scale(1.06f, 6.f, 1);
+	meshList["QUAD"]->textureID = textureID["MAP"];  RenderMesh(meshList["QUAD"], false, Color(0.68f,0.68f,0.68f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Scale(Application::m_height, Application::m_height, 1);
+	Color color(231.f/255.f, 206.f/255.f, 165.f/255.f);
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+	glUniform1f(m_parameters[U_ALPHA], 0.7f);
+	meshList["QUAD"]->textureID = m_lightDepthFBO.GetTexture();  RenderMesh(meshList["QUAD"], false);
+	glUniform1f(m_parameters[U_ALPHA], 1);
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+	modelStack.PopMatrix();
+
+	modelStack.PopMatrix();
+
+	for (unsigned i = 0; i < waypointList.size(); ++i)
+	{
+		Vector3 thePoint = waypointList[i].getWaypoint(worldX, worldZ, Application::m_height, Application::m_height);
+
+		modelStack.PushMatrix();
+		modelStack.Translate(thePoint);
+		modelStack.Scale(32);
+		if (waypointList[i].selected)
+		{
+			modelStack.Scale(1.4f);
+			text = waypointList[i].name;
+			waypointList[i].selected = false;
+		}
+		meshList["QUAD"]->textureID = waypointList[i].texture;  RenderMesh(meshList["QUAD"], false, waypointList[i].color);
+		modelStack.PopMatrix();
+	}
+
+	Vector3 thePoint = playerWaypoint.getWaypoint(worldX, worldZ, Application::m_height, Application::m_height);
+
+	modelStack.PushMatrix();
+	modelStack.Translate(thePoint);
+	modelStack.Rotate(camera->orientation, 0, 0, 1);
+	modelStack.Scale(32);
+	if (playerWaypoint.selected)
+	{
+		modelStack.Scale(1.4f);
+		text = playerWaypoint.name;
+		playerWaypoint.selected = false;
+	}
+	meshList["QUAD"]->textureID = playerWaypoint.texture;  RenderMesh(meshList["QUAD"], false, playerWaypoint.color);
+	modelStack.PopMatrix();
+
+	if (!text.empty())
+	{
+		float textWidth = Application::getTextWidth(text) * 20;
+
+		glUniform1f(m_parameters[U_ALPHA], 0.75f);
+		modelStack.PushMatrix();
+		modelStack.Translate(16 + x + textWidth * 0.5f, y - 10, 0);
+		modelStack.Scale(textWidth + 2, 22, 1);
+		meshList["QUAD"]->textureID = NULL;  RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+		modelStack.PopMatrix();
+		glUniform1f(m_parameters[U_ALPHA], 1);
+
+		modelStack.PushMatrix();
+		modelStack.Translate(16 + x, y - 10, 0);
+		modelStack.Scale(20);
+		RenderText(text, Color(1, 1, 1));
+		modelStack.PopMatrix();
+	}
+}
+
 void MinScene::Render()
 {
 	RenderPassGPass();
@@ -1076,18 +1284,21 @@ void MinScene::Render()
 	Vector3 lightDirection_cameraspace = viewStack.Top() * lightDir;
 	glUniform3fv(m_parameters[U_LIGHT0_POSITION], 1, &lightDirection_cameraspace.x);
 
-	glUniform1i(m_parameters[U_FOG_ENABLED], 0);
-	RenderSkybox();
-	glUniform1i(m_parameters[U_FOG_ENABLED], 1);
-	RenderScene();
-	glUniform1i(m_parameters[U_FOG_ENABLED], 0);
+	if (!showMap)
+	{
+		glUniform1i(m_parameters[U_FOG_ENABLED], 0);
+		RenderSkybox();
+		glUniform1i(m_parameters[U_FOG_ENABLED], 1);
+		RenderScene();
+		glUniform1i(m_parameters[U_FOG_ENABLED], 0);
+	}
 
 	glDisable(GL_DEPTH_TEST);
 
 	viewStack.LoadIdentity();
 	glUniformMatrix4fv(m_parameters[U_VIEW], 1, GL_FALSE, &viewStack.Top().a[0]);
 
-	if (!player.noClip)
+	if (!showMap && !player.noClip)
 	{
 		if (player.getSelectedItem())
 		{
@@ -1114,7 +1325,11 @@ void MinScene::Render()
 	projectionStack.LoadMatrix(projection);
 	glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
 
-	Render2D();
+	if (showMap)
+		RenderMap();
+	else
+		Render2D();
+
 	glEnable(GL_DEPTH_TEST);
 }
 
@@ -1261,7 +1476,7 @@ void MinScene::RenderEntities()
 		unsigned count = LivingThings[j].size();
 		for (unsigned i = 0; i < count; ++i)
 		{
-			if (!Block(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox).collisionWithCylinder(camera->position + dir * (RenderDist * 0.5f), RenderDist * 0.5f))
+			if (!Block(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox).collisionWithCylinder(camera->position + dir * RenderDist, RenderDist))
 				continue;
 
 			modelStack.PushMatrix();
@@ -1430,20 +1645,43 @@ void MinScene::RenderEntities()
 void MinScene::RenderBlocks_GPass()
 {
 	vector<Mtx44> MMat[2];
-	unsigned count = blockList.size();
-	for (unsigned i = 0; i < count; ++i)
-	{
-		if (blockList[i]->position.x >(int)camera->position.x + 47 || blockList[i]->position.x < (int)camera->position.x - 48 ||
-			blockList[i]->position.z >(int)camera->position.z + 47 || blockList[i]->position.z < (int)camera->position.z - 48)
-			continue;
 
-		modelStack.PushMatrix();
-		blockList[i]->RenderObject(modelStack);
-		if (blockList[i]->type == Block::STAIR)
-			MMat[1].push_back(modelStack.Top());
-		else
-			MMat[0].push_back(modelStack.Top());
-		modelStack.PopMatrix();
+	if (!showMap)
+	{
+		unsigned count = blockList.size();
+		for (unsigned i = 0; i < count; ++i)
+		{
+			if (blockList[i]->position.x >(int)camera->position.x + maxShadowCoord.x - 1 || blockList[i]->position.x < (int)camera->position.x + minShadowCoord.x ||
+				blockList[i]->position.z >(int)camera->position.z + maxShadowCoord.z - 1 || blockList[i]->position.z < (int)camera->position.z + minShadowCoord.z)
+				continue;
+
+			modelStack.PushMatrix();
+			blockList[i]->RenderObject(modelStack);
+			if (blockList[i]->type == Block::STAIR)
+				MMat[1].push_back(modelStack.Top());
+			else
+				MMat[0].push_back(modelStack.Top());
+			modelStack.PopMatrix();
+		}
+	}
+	else
+	{
+		for (int y = 0; y < worldY; ++y)
+		{
+			for (int x = 0; x < worldX; ++x)
+			{
+				for (int z = 0; z < worldZ; ++z)
+				{
+					if (worldBlockList[x][y][z])
+					{
+						modelStack.PushMatrix();
+						worldBlockList[x][y][z]->RenderObject(modelStack);
+						MMat[0].push_back(modelStack.Top());
+						modelStack.PopMatrix();
+					}
+				}
+			}
+		}
 	}
 
 	if (MMat[0].size() > 0)
@@ -1464,7 +1702,7 @@ void MinScene::RenderBlocks()
 	{
 		if (blockList[i]->type == Block::TRANS)
 			continue;
-		if (!blockList[i]->collisionWithCylinder(camera->position + dir * (RenderDist * 0.5f), RenderDist * 0.5f))
+		if (!blockList[i]->collisionWithCylinder(camera->position + dir * RenderDist, RenderDist))
 			continue;
 
 		modelStack.PushMatrix();
@@ -1477,7 +1715,7 @@ void MinScene::RenderBlocks()
 	count = alphaBlockList.size();
 	for (unsigned i = 0; i < count; ++i)
 	{
-		if (!alphaBlockList[i]->collisionWithCylinder(camera->position + dir * (RenderDist * 0.5f), RenderDist * 0.5f))
+		if (!alphaBlockList[i]->collisionWithCylinder(camera->position + dir * RenderDist, RenderDist))
 			continue;
 
 		modelStack.PushMatrix();
@@ -1627,12 +1865,14 @@ void MinScene::Render2D()
 
 	modelStack.PushMatrix();
 	modelStack.Translate(Application::m_width * 0.5f - 100, Application::m_height * 0.5f - 100, 0);
+
+	modelStack.PushMatrix();
 	modelStack.Rotate(-camera->orientation, 0, 0, 1);
 	
 	meshList["CIRCLE"]->textureID = m_lightDepthFBO.GetTexture();
 	modelStack.PushMatrix();
 	modelStack.Scale(180, 180, 1);
-	RenderMesh(meshList["CIRCLE"], false, Color(0,1,0));
+	RenderMesh(meshList["CIRCLE"], false);
 	modelStack.PopMatrix();
 	meshList["CIRCLE"]->textureID = NULL;
 
@@ -1640,7 +1880,7 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(0, 80, 0);
 	modelStack.Rotate(camera->orientation, 0, 0, 1);
-	modelStack.Scale(16);
+	modelStack.Scale(20);
 	modelStack.Translate(-Application::getTextWidth("N") * 0.5f, 0, 0);
 	ss << "N";
 	RenderText(ss.str(), Color(1, 1, 1));
@@ -1650,7 +1890,7 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(0, -80, 0);
 	modelStack.Rotate(camera->orientation, 0, 0, 1);
-	modelStack.Scale(16);
+	modelStack.Scale(20);
 	modelStack.Translate(-Application::getTextWidth("S") * 0.5f, 0, 0);
 	ss << "S";
 	RenderText(ss.str(), Color(1, 1, 1));
@@ -1660,7 +1900,7 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(-80, 0, 0);
 	modelStack.Rotate(camera->orientation, 0, 0, 1);
-	modelStack.Scale(16);
+	modelStack.Scale(20);
 	modelStack.Translate(-Application::getTextWidth("W") * 0.5f, 0, 0);
 	ss << "W";
 	RenderText(ss.str(), Color(1, 1, 1));
@@ -1670,13 +1910,35 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(80, 0, 0);
 	modelStack.Rotate(camera->orientation, 0, 0, 1);
-	modelStack.Scale(16);
+	modelStack.Scale(20);
 	modelStack.Translate(-Application::getTextWidth("E") * 0.5f, 0, 0);
 	ss << "E";
 	RenderText(ss.str(), Color(1, 1, 1));
 	modelStack.PopMatrix();
 	
+	for (unsigned i = 0; i < waypointList.size(); ++i)
+	{
+		Vector3 dir = waypointList[i].getWaypoint(96, 96, 180, 180) - playerWaypoint.getWaypoint(96, 96, 180, 180);
+
+		if (dir.LengthSquared() >= (RenderDist + 8)*(RenderDist + 8))
+			dir.Normalize() *= RenderDist + 8;
+
+		modelStack.PushMatrix();
+		modelStack.Translate(int(dir.x+0.5f), int(dir.y+0.5f),0);
+		modelStack.Rotate(camera->orientation, 0, 0, 1);
+		modelStack.Scale(24);
+		meshList["QUAD"]->textureID = waypointList[i].texture;
+		RenderMesh(meshList["QUAD"], false, waypointList[i].color);
+		modelStack.PopMatrix();
+	}
+
 	modelStack.PopMatrix();
+	modelStack.Scale(32);
+	meshList["QUAD"]->textureID = playerWaypoint.texture;
+	RenderMesh(meshList["QUAD"], false);
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+
 	glUniform1f(m_parameters[U_ALPHA], 0.75f);
 	modelStack.PushMatrix();
 	modelStack.Scale(2.5f, 20, 1);
@@ -1915,7 +2177,7 @@ bool MinScene::Load(const char * filepath)
 			}
 			else if (data.size() == 5)
 			{
-				FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]);
+					FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]);
 			}
 			else
 			{
@@ -1934,6 +2196,271 @@ bool MinScene::Load(const char * filepath)
 	}
 
 	std::cout << "Failed to load" << filepath << endl;
+
+	return false;
+}
+
+bool MinScene::LoadOutpost()
+{
+	unsigned count = 0;
+	int lineCount = 1;
+	string line;
+
+	ifstream inputFile;
+	inputFile.open("Save//Outpost.txt");
+
+	if (inputFile.is_open())
+	{
+		vector<float> data;
+
+		while (getline(inputFile, line))
+		{
+			char *dup = strdup(line.c_str());
+			char * token = strtok(dup, " [,]");
+
+			while (token != NULL)
+			{
+				data.push_back(atof(token));
+				token = strtok(NULL, " [,]");
+			}
+
+			if (lineCount == 1)
+			{
+				player.position.Set(data[0], data[1], data[2]);
+				if (camera)
+				{
+					camera->orientation = data[3]; camera->look = data[4];
+				}
+			}
+			else if (data.size() == 5)
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+				
+				data[0] += 14;
+ 				data[2] -= 100;
+				if (pos.x < 12 && pos.x > -40 && pos.z < 42 && pos.z > -13)
+					if (FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]))
+						count++;
+			}
+			else
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] += 14;
+				data[2] -= 100;
+				if (pos.x < 12 && pos.x > -40 && pos.z < 42 && pos.z > -13)
+					if (FetchStair(Vector3(data[0], data[1], data[2]), false, data[3], data[5], data[6]))
+						count++;
+			}
+			free(dup);
+			data.clear();
+			lineCount++;
+		}
+
+		inputFile.close();
+
+		std::cout << "Loaded Outpost (" << count << " Blocks)" << endl;
+
+		return true;
+	}
+
+	return false;
+}
+
+
+bool MinScene::LoadLionsDen()
+{
+	unsigned count = 0;
+	int lineCount = 1;
+	string line;
+
+	ifstream inputFile;
+	inputFile.open("Save//Lion.txt");
+
+	if (inputFile.is_open())
+	{
+		vector<float> data;
+
+		while (getline(inputFile, line))
+		{
+			char *dup = strdup(line.c_str());
+			char * token = strtok(dup, " [,]");
+
+			while (token != NULL)
+			{
+				data.push_back(atof(token));
+				token = strtok(NULL, " [,]");
+			}
+
+			if (lineCount == 1)
+			{
+				player.position.Set(data[0], data[1], data[2]);
+				if (camera)
+				{
+					camera->orientation = data[3]; camera->look = data[4];
+				}
+			}
+			else if (data.size() == 5)
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] -= 25;
+				data[2] += 68;
+				if (pos.x < 35 && pos.x > -104 && pos.z < 60 && pos.z > -34)
+					if (FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]))
+						count++;
+			}
+			else
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] -= 25;
+				data[2] += 68;
+				if (pos.x < 35 && pos.x > -104 && pos.z < 60 && pos.z > -34)
+					if (FetchStair(Vector3(data[0], data[1], data[2]), false, data[3], data[5], data[6]))
+						count++;
+			}
+			free(dup);
+			data.clear();
+			lineCount++;
+		}
+
+		inputFile.close();
+
+		std::cout << "Loaded Lion's Den (" << count << " Blocks)" << endl;
+
+		return true;
+	}
+
+	return false;
+}
+bool MinScene::LoadCastleBlack()
+{
+	unsigned count = 0;
+	int lineCount = 1;
+	string line;
+
+	ifstream inputFile;
+	inputFile.open("Save//Castle Black.txt");
+
+	if (inputFile.is_open())
+	{
+		vector<float> data;
+
+		while (getline(inputFile, line))
+		{
+			char *dup = strdup(line.c_str());
+			char * token = strtok(dup, " [,]");
+
+			while (token != NULL)
+			{
+				data.push_back(atof(token));
+				token = strtok(NULL, " [,]");
+			}
+
+			if (lineCount == 1)
+			{
+				player.position.Set(data[0], data[1], data[2]);
+				if (camera)
+				{
+					camera->orientation = data[3]; camera->look = data[4];
+				}
+			}
+			else if (data.size() == 5)
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] += 58;
+				data[2] -= 26;
+				if (pos.x < 70 && pos.x > -6 && pos.z < 72 && pos.z > -20)
+					if (FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]))
+						count++;
+			}
+			else
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] += 58;
+				data[2] -= 26;
+				if (pos.x < 70 && pos.x > -6 && pos.z < 72 && pos.z > -20)
+					if (FetchStair(Vector3(data[0], data[1], data[2]), false, data[3], data[5], data[6]))
+						count++;
+			}
+			free(dup);
+			data.clear();
+			lineCount++;
+		}
+
+		inputFile.close();
+
+		std::cout << "Loaded Castle Black (" << count << " Blocks)" << endl;
+
+		return true;
+	}
+
+	return false;
+}
+bool MinScene::LoadWinterfell()
+{
+	unsigned count = 0;
+	int lineCount = 1;
+	string line;
+
+	ifstream inputFile;
+	inputFile.open("Save//Winterfell.txt");
+
+	if (inputFile.is_open())
+	{
+		vector<float> data;
+
+		while (getline(inputFile, line))
+		{
+			char *dup = strdup(line.c_str());
+			char * token = strtok(dup, " [,]");
+
+			while (token != NULL)
+			{
+				data.push_back(atof(token));
+				token = strtok(NULL, " [,]");
+			}
+
+			if (lineCount == 1)
+			{
+				player.position.Set(data[0], data[1], data[2]);
+				if (camera)
+				{
+					camera->orientation = data[3]; camera->look = data[4];
+				}
+			}
+			else if (data.size() == 5)
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] -= 81;
+				if (pos.x < 3 && pos.x > -48 && pos.z < 28 && pos.z > -27)
+					if (FetchBlock(Vector3(data[0], data[1], data[2]), false, data[3], (Block::blockType)(int)data[4]))
+						count++;
+			}
+			else
+			{
+				Vector3 pos(data[0] - worldX*0.5f, data[1] - worldY * 0.5f, data[2] - worldZ * 0.5f);
+
+				data[0] -= 81;
+				if (pos.x < 3 && pos.x > -48 && pos.z < 28 && pos.z > -27)
+					if (FetchStair(Vector3(data[0], data[1], data[2]), false, data[3], data[5], data[6]))
+						count++;
+			}
+			free(dup);
+			data.clear();
+			lineCount++;
+		}
+
+		inputFile.close();
+
+		std::cout << "Loaded Winterfell (" << count << " Blocks)" << endl;
+
+		return true;
+	}
 
 	return false;
 }
@@ -1979,7 +2506,7 @@ bool MinScene::GenerateWorld(Vector3 size)
 {
 	vector<Vector3> terrainRise;
 
-	int y = worldY*0.5f - size.y*0.5f;
+	int y = 15;
 	for (unsigned z = 0; z < size.z; ++z)
 	{
 		for (unsigned x = 0; x < size.x; ++x)
@@ -2054,6 +2581,35 @@ bool MinScene::GenerateWorld(Vector3 size)
 					worldBlockList[x][y - 1][z] = NULL;
 					--worldBlocks;
 
+					bool noSpaceForTree = false;
+
+					for (unsigned i = 1; i <= 6; ++i)
+					{
+						if (noSpaceForTree)
+							break;
+
+						for (int X = x - 2; X <= x + 2; ++X)
+						{
+							if (noSpaceForTree)
+								break;
+
+							for (int Z = z - 2; Z <= z + 2; ++Z)
+							{
+								if (X < 0 || X >= worldX || Z < 0 || Z >= worldZ)
+									continue;
+
+								if (worldBlockList[X][y + i][Z])
+								{
+									noSpaceForTree = true;
+									break;
+								}
+							}
+						}
+					}
+
+					if (noSpaceForTree)
+						continue;
+
 					for (unsigned i = 1; i <= 6; ++i)
 					{
 						FetchBlock(Vector3(x, y + i, z), false, 2);
@@ -2113,12 +2669,11 @@ void MinScene::RenderSkybox()
 	vector<TexCoord>offset;
 
 	modelStack.PushMatrix();
-//	modelStack.Translate(camera->position);
 	modelStack.Rotate(elapsedTime * 0.5f, 0, 180, 0);
 	modelStack.Scale(500);
 
 	modelStack.PushMatrix(); //UP
-	modelStack.Translate(0, 0.4985f, 0);
+	modelStack.Translate(0, 0.4975f, 0);
 	modelStack.Rotate(90, 0, 1, 0);
 	modelStack.Rotate(90, 1, 0, 0);
 	MMat.push_back(modelStack.Top());
@@ -2126,34 +2681,34 @@ void MinScene::RenderSkybox()
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix(); //DOWN
-	modelStack.Translate(0, -0.4985f, 0);
+	modelStack.Translate(0, -0.4975f, 0);
 	modelStack.Rotate(-90, 1, 0, 0);
 	MMat.push_back(modelStack.Top());
 	offset.push_back(TexCoord((1 % 3) / 3.f, 1 - ((1 / 3) + 1) / 3.f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix(); //LEFT
-	modelStack.Translate(0.4985f, 0, 0);
+	modelStack.Translate(0.4975f, 0, 0);
 	modelStack.Rotate(-90, 0, 1, 0);
 	MMat.push_back(modelStack.Top());
 	offset.push_back(TexCoord((2 % 3) / 3.f, 1 - ((2 / 3) + 1) / 3.f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix(); //RIGHT
-	modelStack.Translate(-0.4985f,0,0);
+	modelStack.Translate(-0.4975f,0,0);
 	modelStack.Rotate(90,0,1,0);
 	MMat.push_back(modelStack.Top());
 	offset.push_back(TexCoord((3 % 3) / 3.f, 1 - ((3 / 3) + 1) / 3.f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix(); //FRONT
-	modelStack.Translate(0, 0, -0.4985f);
+	modelStack.Translate(0, 0, -0.4975f);
 	MMat.push_back(modelStack.Top());
 	offset.push_back(TexCoord((4 % 3) / 3.f, 1 - ((4 / 3) + 1) / 3.f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix(); //BACK
-	modelStack.Translate(0, 0, 0.4985f);
+	modelStack.Translate(0, 0, 0.4975f);
 	modelStack.Rotate(180, 0, 1, 0);
 	MMat.push_back(modelStack.Top());
 	offset.push_back(TexCoord((5 % 3) / 3.f, 1 - ((5 / 3) + 1) / 3.f));

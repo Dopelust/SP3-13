@@ -67,6 +67,9 @@ void Player::Update(double dt, bool RestrictMovement)
 	if (noClip)
 	{
 		WALK_SPEED = 8;
+		if (myKeys['C'])
+			WALK_SPEED *= 4;
+
 		velocity.SetZero();
 
 		Vector3 hVel;
@@ -202,6 +205,7 @@ void Player::Update(double dt, bool RestrictMovement)
 	if (mount)
 	{
 		WALK_SPEED = 11;
+		hVel.SetZero();
 
 		if (myKeys['w'])
 			hVel += direction * WALK_SPEED;
@@ -212,7 +216,10 @@ void Player::Update(double dt, bool RestrictMovement)
 		if (myKeys['d'])
 			hVel += right * WALK_SPEED * 0.25f;
 
-		mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
+		if (hVel.LengthSquared() > 0)
+		{
+			mount->velocity.x = hVel.x; mount->velocity.z = hVel.z;
+		}
 
 		if (mount->jump && mount->velocity.y == 0)
 			mount->jump = false;
@@ -238,13 +245,13 @@ void Player::Update(double dt, bool RestrictMovement)
 
 		if (!mount->jump)
 		{
+			stepRate += dt;
+
 			if (!hVel.IsZero())
 			{
 				float bobSpeed = 0.5f;
 				if (!myKeys['w'])
 					bobSpeed = 0.25f;
-
-				stepRate += dt;
 
 				if (stepRate >= 0.4f)
 				{
@@ -310,9 +317,7 @@ void Player::Update(double dt, bool RestrictMovement)
 				stepRate += dt;
 
 				if (myKeys['C'])
-				{
 					stepRate += dt;
-				}
 			}
 
 			if (stepRate >= 0.5f)
@@ -334,26 +339,41 @@ void Player::Update(double dt, bool RestrictMovement)
 				}
 			}
 
-			if (initialVel.y < -14)
+			if (initialVel.y < -5)
 			{
-				char* soundFileName[3];
-				soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
-				soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
-				soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
-
-				ISound* sound = engine->play2D(soundFileName[rand() % 3], false, true);
-				if (sound)
+				if (initialVel.y < -14)
 				{
-					sound->setVolume(0.75f);
-					sound->setIsPaused(false);
+					char* soundFileName[3];
+					soundFileName[0] = "Assets/Media/Damage/hit1.mp3";
+					soundFileName[1] = "Assets/Media/Damage/hit2.mp3";
+					soundFileName[2] = "Assets/Media/Damage/hit3.mp3";
+
+					ISound* sound = engine->play2D(soundFileName[rand() % 3], false, true);
+					if (sound)
+					{
+						sound->setVolume(0.75f);
+						sound->setIsPaused(false);
+					}
+					reduceHealth(-initialVel.y / 3); 
 				}
-				reduceHealth(-initialVel.y / 3);
+				else if(stepSound)
+				{
+					ISound * sound = engine->play2D(stepSound, false, true);
+					if (sound)
+					{
+						sound->setVolume(0.25f);
+						sound->setIsPaused(false);
+					}
+				}
 			}
 		}
 	}
 
 	Vector3 camerapos = position; camerapos.y += eyeLevel;
-	camera.position += (camerapos - camera.position) * 25 * dt;
+	Vector3 initialDir = camerapos - camera.position;
+	camera.position +=  initialDir * 25 * dt;
+	Vector3 finalDir = camerapos - camera.position;
+
 	if (!RestrictMovement) camera.Move(dt);
 	camera.Update();
 	hOrientation = camera.orientation;

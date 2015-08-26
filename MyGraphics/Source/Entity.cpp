@@ -42,6 +42,20 @@ void Entity::Knockback(Vector3 dir)
 		soundFileName.push_back("Assets/Media/Damage/horseCry3.mp3");
 		soundFileName.push_back("Assets/Media/Damage/horseCry4.mp3");
 	}
+	//else if (entityID == ENEMY_1 || entityID == ENEMY_2 || entityID == ENEMY_3)
+	//{
+	//	// Enemy Kenna Hit Sound
+	//	soundFileName.push_back("Assets/Media/Damage/enemyCry1.mp3");
+	//	soundFileName.push_back("Assets/Media/Damage/enemyCry2.mp3");
+	//	soundFileName.push_back("Assets/Media/Damage/enemyCry3.mp3");
+	//}
+	else if (entityID == WOLF)
+	{
+		// Wolf Kenna Hit Sound
+		soundFileName.push_back("Assets/Media/Damage/wolfCry1.mp3");
+		soundFileName.push_back("Assets/Media/Damage/wolfCry2.mp3");
+		soundFileName.push_back("Assets/Media/Damage/wolfCry3.mp3");
+	}
 	else
 	{
 		soundFileName.push_back("Assets/Media/Damage/hit1.mp3");
@@ -98,8 +112,8 @@ void Entity::Update(double dt, bool RestrictMovement)
 	initialPos = position;
 	initialVel = velocity;
 
-	velocity.x += -velocity.x * 16 * dt;
-	velocity.z += -velocity.z * 16 * dt;
+	velocity.x += -velocity.x * 10 * dt;
+	velocity.z += -velocity.z * 10 * dt;
 	if (velocity.x > -0.1f && velocity.x < 0.1f)
 		velocity.x = 0;
 	if (velocity.z > -0.1f && velocity.z < 0.1f)

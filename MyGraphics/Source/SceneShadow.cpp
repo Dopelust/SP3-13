@@ -199,7 +199,7 @@ void SceneShadow::RenderPassGPass()
 	glUseProgram(m_gPassShaderID);
 
 	if(lights[0].type == Light::LIGHT_DIRECTIONAL)
-		m_lightDepthProj.SetToOrtho(-48, 48, -48, 48, -24, 24);
+		m_lightDepthProj.SetToOrtho(minShadowCoord.x, maxShadowCoord.x, minShadowCoord.z, maxShadowCoord.z, minShadowCoord.y, maxShadowCoord.y);
 	else
 		m_lightDepthProj.SetToPerspective(90, 1.f, 0.1, 20);
 	m_lightDepthView.SetToLookAt((int)lights[0].position.x, 0, (int)lights[0].position.z, (int)lights[0].position.x, -1, (int)lights[0].position.z, 0, 0, 1);
