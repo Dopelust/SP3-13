@@ -1,7 +1,7 @@
 #include "Living.h"
 #include "Utility.h"
 
-Living::Living() : timeToStop(0), timeToGo(0)
+Living::Living() : timeToStop(0), timeToGo(0), hitRate(0.3f), hitTimer(0)
 {
 	timeToGo = rand() % 10 + 1;
 }
@@ -15,7 +15,31 @@ void Living::Update(double dt, bool RestrictMovement)
 	initialPos = position;
 	initialVel = velocity;
 
-	if (timeToGo > 0)
+	if (aggro)
+	{
+		timeToStop = 0;
+		timeToGo = 0;
+
+		Vector3 dir = dir.SphericalToCartesian(hOrientation, 0);
+		Vector3 dest = aggro->position - position; dest.y = 0; dest.Normalize();
+
+		hOrientation += dt * velocity.Cross(dest).y * 300;
+
+		dir.SphericalToCartesian(hOrientation, 0); dir *= 3;
+		velocity.x = dir.x; velocity.z = dir.z;
+
+		if (velocity.y == 0 && hitTimer >= hitRate)
+		{
+			if (position.DistSquared(aggro->position) < 1.5f*1.5f)
+			{
+				velocity.y = 6;
+				aggro->Knockback(dir * 15);
+			}
+
+			hitTimer = 0.f;
+		}
+	}
+	else if (timeToGo > 0)
 	{
 		if (newOrientation > hOrientation)
 			Rise(hOrientation, dt * 25, newOrientation);
@@ -42,22 +66,27 @@ void Living::Update(double dt, bool RestrictMovement)
 	}
 
 	position += velocity * dt;
+	position += kbVelocity * dt;
 
 	velocity.x += -velocity.x * 16 * dt;
 	velocity.z += -velocity.z * 16 * dt;
-	if (velocity.x > -0.1f && velocity.x < 0.1f)
-		velocity.x = 0;
-	if (velocity.z > -0.1f && velocity.z < 0.1f)
-		velocity.z = 0;
+	kbVelocity += -kbVelocity * 16 * dt;
+
+	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
+	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
+	kbVelocity.x = kbVelocity.x > -0.1f && kbVelocity.x < 0.1f ? 0 : kbVelocity.x;
+	kbVelocity.z = kbVelocity.z > -0.1f && kbVelocity.z < 0.1f ? 0 : kbVelocity.z;
+
 	velocity.y -= 30 * dt;
 
 	RespondToCollision(this->collisionBlockList);
 
-	if (timeToGo)
+	if (timeToGo || aggro)
 	if ((initialPos.x == position.x || initialPos.z == position.z) && velocity.y == 0 && !velocity.IsZero())
 		velocity.y = 7;
 
 	Animate(dt);
+	hitTimer += dt;
 }
 
 void Living::Animate(double dt)
@@ -362,10 +391,17 @@ void Enemy::Update(double dt, bool RestrictMovement)
 	//else if (this->state == 3)
 		//Chase(dt);
 
-	if (velocity.x > -0.1f && velocity.x < 0.1f)
-		velocity.x = 0;
-	if (velocity.z > -0.1f && velocity.z < 0.1f)
-		velocity.z = 0;
+	position += kbVelocity * dt;
+
+	velocity.x += -velocity.x * 16 * dt;
+	velocity.z += -velocity.z * 16 * dt;
+	kbVelocity += -kbVelocity * 16 * dt;
+
+	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
+	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
+	kbVelocity.x = kbVelocity.x > -0.1f && kbVelocity.x < 0.1f ? 0 : kbVelocity.x;
+	kbVelocity.z = kbVelocity.z > -0.1f && kbVelocity.z < 0.1f ? 0 : kbVelocity.z;
+
 	velocity.y -= 30 * dt;
 
 	RespondToCollision(this->collisionBlockList);

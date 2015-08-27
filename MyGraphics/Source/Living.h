@@ -9,6 +9,9 @@ public:
 	Living();
 	~Living();
 
+	float hitRate;
+	float hitTimer;
+
 	float headBob;
 	float newOrientation;
 

@@ -7,7 +7,7 @@ using namespace irrklang;
 
 extern ISoundEngine * engine;
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientation(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f), health(100)
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientation(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f), health(100), aggro(NULL)
 {
 	active = true;
 }
@@ -29,9 +29,9 @@ void Entity::RenderObject(MS& modelStack)
 
 void Entity::Knockback(Vector3 dir)
 {
-	velocity.x += dir.x;
+	kbVelocity.x += dir.x;
 	velocity.y += 5;
-	velocity.z += dir.z;
+	kbVelocity.z += dir.z;
 
 	vector<char*> soundFileName;
 
@@ -70,7 +70,7 @@ void Entity::Knockback(Vector3 dir)
 		sound->setIsPaused(false);
 	}
 
-	health -= dir.LengthSquared() / 100;
+	health -= dir.LengthSquared() * 0.01f;
 }
 
 bool Entity::IsActive()
@@ -114,13 +114,18 @@ void Entity::Update(double dt, bool RestrictMovement)
 
 	velocity.x += -velocity.x * 10 * dt;
 	velocity.z += -velocity.z * 10 * dt;
-	if (velocity.x > -0.1f && velocity.x < 0.1f)
-		velocity.x = 0;
-	if (velocity.z > -0.1f && velocity.z < 0.1f)
-		velocity.z = 0;
+	kbVelocity += -kbVelocity * 16 * dt;
+
+	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
+	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
+	kbVelocity.x = kbVelocity.x > -0.1f && kbVelocity.x < 0.1f ? 0 : kbVelocity.x;
+	kbVelocity.z = kbVelocity.z > -0.1f && kbVelocity.z < 0.1f ? 0 : kbVelocity.z;
+
 	velocity.y -= 30 * dt;
 
 	position += velocity * dt;
+	position += kbVelocity * dt;
+
 	RespondToCollision(this->collisionBlockList);
 }
 
@@ -240,7 +245,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				else
 				{
 					cantClimb.push_back(1);
-					velocity.z = 0;
+					kbVelocity.z = velocity.z = 0;
 					position.z = maxCube.z + Player.collision.hitbox.z * 0.5f + eps;
 				}
 			}
@@ -258,7 +263,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				else
 				{
 					cantClimb.push_back(2);
-					velocity.z = 0;
+					kbVelocity.z = velocity.z = 0;
 					position.z = minCube.z - Player.collision.hitbox.z * 0.5f - eps;
 				}
 			}
@@ -276,7 +281,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				else
 				{
 					cantClimb.push_back(3);
-					velocity.x = 0;
+					kbVelocity.x = velocity.x = 0;
 					position.x = maxCube.x + Player.collision.hitbox.x * 0.5f + eps;
 				}
 			}
@@ -294,7 +299,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 				else
 				{
 					cantClimb.push_back(4);
-					velocity.x = 0;
+					kbVelocity.x = velocity.x = 0;
 					position.x = minCube.x - Player.collision.hitbox.x * 0.5f - eps;
 				}
 			}

@@ -38,6 +38,7 @@ public:
 	Vector3 initialPos;
 	Vector3 position;
 	Vector3 velocity;
+	Vector3 kbVelocity;
 	Collision collision;
 	vector<Block*> collisionBlockList;
 
@@ -64,6 +65,7 @@ public:
 
 	float climbHeight;
 
+	Entity* aggro;
 	virtual float getSkeletalRotation();
 	void Knockback(Vector3 dir);
 	vector<Arrow*> StuckedArrows;

@@ -57,7 +57,7 @@ void MinScene::Init()
 
 	selectedBlock = NULL;
 	blockInventory.Init();
-	RenderDist = 80;
+	RenderDist = 50;
 
 	worldBlocks = 0;
 	for (unsigned z = 0; z < worldZ; ++z)
@@ -768,11 +768,7 @@ void MinScene::Update(double dt)
 		return;
 	}
 
-	if (elapsedTime >= (nextUpdate*0.1f))
-	{
 		ObtainBlockList();
-		nextUpdate++;
-	}
 	PartitionCollision();
 
 	player.Update(dt, false);
@@ -863,6 +859,7 @@ void MinScene::Update(double dt)
 
 						if (Block::checkCollision(arrow, NPC)) //If arrow collide with entity
 						{
+							LivingThings[j2][k]->aggro = &player;
 							LivingThings[j2][k]->Knockback(LivingThings[j][i]->velocity); //Knockback entity
 							for (unsigned l = 0; l < 10; ++l) //Generate Blood
 								SpawnParticle(LivingThings[j][i]->position, 15);
@@ -1869,12 +1866,16 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Rotate(-camera->orientation, 0, 0, 1);
 	
+	Color color(231.f / 255.f, 206.f / 255.f, 165.f / 255.f);
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
 	meshList["CIRCLE"]->textureID = m_lightDepthFBO.GetTexture();
 	modelStack.PushMatrix();
 	modelStack.Scale(180, 180, 1);
 	RenderMesh(meshList["CIRCLE"], false);
 	modelStack.PopMatrix();
 	meshList["CIRCLE"]->textureID = NULL;
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 
 	ss.str("");
 	modelStack.PushMatrix();
@@ -1920,8 +1921,8 @@ void MinScene::Render2D()
 	{
 		Vector3 dir = waypointList[i].getWaypoint(96, 96, 180, 180) - playerWaypoint.getWaypoint(96, 96, 180, 180);
 
-		if (dir.LengthSquared() >= (RenderDist + 8)*(RenderDist + 8))
-			dir.Normalize() *= RenderDist + 8;
+		if (dir.LengthSquared() >= 90*90)
+			dir.Normalize() *= 90;
 
 		modelStack.PushMatrix();
 		modelStack.Translate(int(dir.x+0.5f), int(dir.y+0.5f),0);
@@ -2090,7 +2091,7 @@ void MinScene::Render2D()
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
 
-	Color color(1,1,0);
+	color.Set(1,1,0);
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
 	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
 

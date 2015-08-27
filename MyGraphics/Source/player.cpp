@@ -191,6 +191,10 @@ void Player::Update(double dt, bool RestrictMovement)
 			velocity.z = 0;
 	}
 
+	kbVelocity += -kbVelocity * 16 * dt;
+	kbVelocity.x = kbVelocity.x > -0.1f && kbVelocity.x < 0.1f ? 0 : kbVelocity.x;
+	kbVelocity.z = kbVelocity.z > -0.1f && kbVelocity.z < 0.1f ? 0 : kbVelocity.z;
+
 	UpdateVelocity(dt);
 	if (!mount)
 		if (myKeys[' '] && !jump && (velocity.y > -2.f && velocity.y <= 0))
@@ -200,6 +204,8 @@ void Player::Update(double dt, bool RestrictMovement)
 		}
 
 	position += velocity * dt;
+	position += kbVelocity * dt;
+
 	RespondToCollision(collisionBlockList);
 
 	if (mount)
