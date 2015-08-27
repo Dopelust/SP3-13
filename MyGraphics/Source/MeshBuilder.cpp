@@ -387,78 +387,78 @@ Mesh* MeshBuilder::GenerateBlock(const std::string &meshName, Color color, float
 	std::vector<Vertex> vertex_buffer_data;	
 
 	//TOP
-	v.pos.Set(0,  lengthY,  lengthZ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(1, 1);
+	v.pos.Set(0,  lengthY,  lengthZ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(1* repeatU, 1* repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(1,  lengthY,  lengthZ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(0, 1);
+	v.pos.Set(lengthX,  lengthY,  lengthZ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(0* repeatU, 1* repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0 ,  lengthY, 0 ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(1, 0);
+	v.pos.Set(0 ,  lengthY, 0 ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(1* repeatU, 0* repeatV);
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set( lengthX,  lengthY, 0 ); v.color = color; v.normal.Set(0,1,0); v.texCoord.Set(0, 0);
 	vertex_buffer_data.push_back(v);
 
 	//BOTTOM
-	v.pos.Set( lengthX, 0 ,  lengthZ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(1, 1);
+	v.pos.Set( lengthX, 0 ,  lengthZ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(1 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0 , 0 ,  lengthZ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(0, 1);
+	v.pos.Set(0 , 0 ,  lengthZ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(0 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set( lengthX, 0 , 0 ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(1, 0);
+	v.pos.Set( lengthX, 0 , 0 ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(1 * repeatU, 0 * repeatV);
 	vertex_buffer_data.push_back(v);
 	
 	v.pos.Set(0 , 0 , 0 ); v.color = color; v.normal.Set(0,-1,0); v.texCoord.Set(0, 0);
 	vertex_buffer_data.push_back(v);
 
 	//RIGHT
-	v.pos.Set(lengthX, lengthY, 0); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(1, 1);
+	v.pos.Set(lengthX, lengthY, 0); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(1 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(lengthX, lengthY, lengthZ); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(0, 1);
+	v.pos.Set(lengthX, lengthY, lengthZ); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(0 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(lengthX, 0, 0); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(1, 0);
+	v.pos.Set(lengthX, 0, 0); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(1 * repeatU, 0 * repeatV);
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set(lengthX, 0, lengthZ); v.color = color; v.normal.Set(1, 0, 0); v.texCoord.Set(0, 0);
 	vertex_buffer_data.push_back(v);
 
 	//LEFT
-	v.pos.Set(0, lengthY, lengthZ); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(1, 1);
+	v.pos.Set(0, lengthY, lengthZ); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(1 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0, lengthY, 0); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(0, 1);
+	v.pos.Set(0, lengthY, 0); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(0 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0, 0, lengthZ); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(1, 0);
+	v.pos.Set(0, 0, lengthZ); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(1 * repeatU, 0 * repeatV);
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set(0, 0, 0); v.color = color; v.normal.Set(-1, 0, 0); v.texCoord.Set(0, 0);
 	vertex_buffer_data.push_back(v);
 
 	//FRONT
-	v.pos.Set(lengthX, lengthY, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(1, 1);
+	v.pos.Set(lengthX, lengthY, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(1 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0, lengthY, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(0, 1);
+	v.pos.Set(0, lengthY, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(0 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(lengthX, 0, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(1, 0);
+	v.pos.Set(lengthX, 0, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(1 * repeatU, 0 * repeatV);
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set(0, 0, lengthZ); v.color = color; v.normal.Set(0, 0, 1); v.texCoord.Set(0, 0);
 	vertex_buffer_data.push_back(v);
 
 	//BACK
-	v.pos.Set(0, lengthY, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(1, 1);
+	v.pos.Set(0, lengthY, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(1 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(lengthX, lengthY, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(0, 1);
+	v.pos.Set(lengthX, lengthY, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(0 * repeatU, 1 * repeatV);
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(0, 0, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(1, 0);
+	v.pos.Set(0, 0, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(1 * repeatU, 0 * repeatV);
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set(lengthX, 0, 0); v.color = color; v.normal.Set(0, 0, -1); v.texCoord.Set(0, 0);
@@ -752,7 +752,7 @@ Mesh* MeshBuilder::GenerateGrassBlock(const std::string &meshName, Color color, 
 	v.pos.Set(0, lengthY, lengthZ); v.color = color; v.normal.Set(0, 1, 0); v.texCoord.Set(2, 1  );
 	vertex_buffer_data.push_back(v);
 
-	v.pos.Set(1, lengthY, lengthZ); v.color = color; v.normal.Set(0, 1, 0); v.texCoord.Set(1 , 1  );
+	v.pos.Set(lengthX, lengthY, lengthZ); v.color = color; v.normal.Set(0, 1, 0); v.texCoord.Set(1 , 1  );
 	vertex_buffer_data.push_back(v);
 
 	v.pos.Set(0, lengthY, 0); v.color = color; v.normal.Set(0, 1, 0); v.texCoord.Set(2, 0);

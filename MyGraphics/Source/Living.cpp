@@ -85,7 +85,11 @@ void Living::Update(double dt, bool RestrictMovement)
 	if ((initialPos.x == position.x || initialPos.z == position.z) && velocity.y == 0 && !velocity.IsZero())
 		velocity.y = 7;
 
-	Animate(dt);
+	if (aggro)
+		Animate(dt * 2);
+	else
+		Animate(dt);
+
 	hitTimer += dt;
 }
 

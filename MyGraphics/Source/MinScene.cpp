@@ -180,7 +180,7 @@ void MinScene::Init()
 
 bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID, Block::blockType type)
 {
-	if (pos.x >= worldX || pos.x < 0 || pos.y >= worldY || pos.y < 0 || pos.y >= worldY || pos.x < 0)
+	if (pos.x >= worldX || pos.x < 0 || pos.y >= worldY || pos.y < 15 || pos.y >= worldY || pos.x < 0)
 		return false;
 	if (worldBlockList[(int)pos.x][(int)pos.y][(int)pos.z])
 		return false;
@@ -230,7 +230,7 @@ bool MinScene::FetchBlock(Vector3 pos, bool checkForCollision, unsigned blockID,
 
 bool MinScene::FetchStair(Vector3 pos, bool checkForCollision, unsigned blockID, int orientation, int look)
 {
-	if (pos.x >= worldX || pos.x < 0 || pos.y >= worldY || pos.y < 0 || pos.y >= worldY || pos.x < 0)
+	if (pos.x >= worldX || pos.x < 0 || pos.y >= worldY || pos.y < 15 || pos.y >= worldY || pos.x < 0)
 		return false;
 	if (worldBlockList[(int)pos.x][(int)pos.y][(int)pos.z])
 		return false;
@@ -374,8 +374,6 @@ void MinScene::ObtainBlockList()
 	Vector3 index = PositionToIndex(camera->position);
 	int zBegin = Math::Max(0, (int)(index.z - RenderDist));
 	int zEnd = Math::Min(worldZ, (int)(index.z + RenderDist)); zEnd = zEnd < 0 ? 0 : zEnd;
-	int yBegin = Math::Max(0, (int)(index.y - RenderDist));
-	int yEnd = Math::Min(worldY, (int)(index.y + RenderDist)); yEnd = yEnd < 0 ? 0 : yEnd;
 	int xBegin = Math::Max(0, (int)(index.x - RenderDist));
 	int xEnd = Math::Min(worldX, (int)(index.x + RenderDist)); xEnd = xEnd < 0 ? 0 : xEnd;
 
@@ -390,17 +388,15 @@ void MinScene::ObtainBlockList()
 	{
 		for (int z = zEnd - 1; z >= zBegin; --z)
 		{
-			for (unsigned y = yBegin; y < yEnd; ++y)
+			for (unsigned x = xBegin; x < xEnd; ++x)
 			{
-				for (unsigned x = xBegin; x < xEnd; ++x)
+				unsigned yEnd = worldBlockList[x][z].size();
+				for (unsigned y = 0; y < yEnd; ++y)
 				{
-					if (worldBlockList[x][y][z])
-					{
-						blockList.push_back(worldBlockList[x][y][z]);
+					blockList.push_back(worldBlockList[x][y][z]);
 
-						if (worldBlockList[x][y][z]->type == Block::TRANS)
-							alphaBlockList.push_back(worldBlockList[x][y][z]);
-					}
+					if (worldBlockList[x][y][z]->type == Block::TRANS)
+						alphaBlockList.push_back(worldBlockList[x][y][z]);
 				}
 			}
 		}
@@ -409,17 +405,15 @@ void MinScene::ObtainBlockList()
 	{
 		for (int z = zEnd - 1; z >= zBegin; --z)
 		{
-			for (unsigned y = yBegin; y < yEnd; ++y)
+			for (int x = xEnd - 1; x >= xBegin; --x)
 			{
-				for (int x = xEnd - 1; x >= xBegin; --x)
+				unsigned yEnd = worldBlockList[x][z].size();
+				for (unsigned y = 0; y < yEnd; ++y)
 				{
-					if (worldBlockList[x][y][z])
-					{
-						blockList.push_back(worldBlockList[x][y][z]);
+					blockList.push_back(worldBlockList[x][y][z]);
 
-						if (worldBlockList[x][y][z]->type == Block::TRANS)
-							alphaBlockList.push_back(worldBlockList[x][y][z]);
-					}
+					if (worldBlockList[x][y][z]->type == Block::TRANS)
+						alphaBlockList.push_back(worldBlockList[x][y][z]);
 				}
 			}
 		}
@@ -428,17 +422,15 @@ void MinScene::ObtainBlockList()
 	{
 		for (unsigned z = zBegin; z < zEnd; ++z)
 		{
-			for (unsigned y = yBegin; y < yEnd; ++y)
+			for (unsigned x = xBegin; x < xEnd; ++x)
 			{
-				for (unsigned x = xBegin; x < xEnd; ++x)
+				unsigned yEnd = worldBlockList[x][z].size();
+				for (unsigned y = 0; y < yEnd; ++y)
 				{
-					if (worldBlockList[x][y][z])
-					{
-						blockList.push_back(worldBlockList[x][y][z]);
+					blockList.push_back(worldBlockList[x][y][z]);
 
-						if (worldBlockList[x][y][z]->type == Block::TRANS)
-							alphaBlockList.push_back(worldBlockList[x][y][z]);
-					}
+					if (worldBlockList[x][y][z]->type == Block::TRANS)
+						alphaBlockList.push_back(worldBlockList[x][y][z]);
 				}
 			}
 		}
@@ -652,14 +644,15 @@ void MinScene::Update_Game(double dt)
 			case CItem::KNIFE:
 				if (selectedEntity)
 				{
+					selectedEntity->aggro = &player;
 					selectedEntity->Knockback((selectedEntity->position - camera->position) * 10);
 					for (unsigned l = 0; l < 5; ++l)
-						SpawnParticle(selectedEntity->position, 15);
+						SpawnParticle(selectedEntity->position + selectedEntity->collision.centre, 15);
 
 					if (selectedEntity->health <= 0) //If the entity dies
 					{
 						for (unsigned l = 0; l < 10; ++l)
-							SpawnParticle(selectedEntity->position, 15); //Generate more blood
+							SpawnParticle(selectedEntity->position + selectedEntity->collision.centre, 15); //Generate more blood
 						
 						selectedEntity->ClearArrows();
 						selectedEntity->SetActive(false);
@@ -1051,7 +1044,7 @@ void MinScene::Update(double dt)
 
 	if (!bGButtonPressed && Application::IsKeyPressed('G'))
 	{
-		Save("Save//save.txt"); Application::m_timer.getElapsedTime();
+		Save("Save//Lion.txt"); Application::m_timer.getElapsedTime();
 		bGButtonPressed = true;
 	}
 	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
@@ -2529,6 +2522,7 @@ bool MinScene::GenerateWorld(Vector3 size)
 
 			if (terrainRise[i].DistSquared(pos) < random*random)
 			{
+				if (worldBlockList[x][(int)terrainRise[i].y - 1][z] && worldBlockList[x][(int)terrainRise[i].y - 1][z]->id == 0)
 				if (FetchBlock(pos, true, 0)) //Cull block below hill
 				{
 					delete worldBlockList[x][(int)terrainRise[i].y - 1][z];

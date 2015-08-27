@@ -150,9 +150,9 @@ void SceneBase::InitMesh()
 
 	meshList["AXES"] = MeshBuilder::GenerateAxes("reference");
 
-	meshList["BLOCK"] = MeshBuilder::GenerateBlock("Block", Color(1, 1, 1), 1, 1, 1, 1);
+	meshList["BLOCK"] = MeshBuilder::GenerateBlock("Block", Color(1, 1, 1), 1, 1, 1);
 	meshList["BLOCK"]->textureID = Load2DTGA("Assets//Block.tga", false);
-	
+
 	meshList["STAIR"] = MeshBuilder::GenerateStair("Block", Color(1, 1, 1), 1, 1, 1, 1);
 	meshList["STAIR"]->textureID = meshList["BLOCK"]->textureID;
 

@@ -62,7 +62,7 @@ private:
 	Entity* selectedEntity;
 
 	unsigned worldBlocks;
-	Block* worldBlockList[worldX][worldY][worldZ];
+	vector<Block*> worldBlockList[worldX][worldZ];
 	vector<Block*> blockList;
 	vector<Block*> alphaBlockList;
 	vector<Particle> particleList;
