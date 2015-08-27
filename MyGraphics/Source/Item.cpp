@@ -79,8 +79,9 @@ void CWeapon::Bob(double dt)
 {
 }
 
-CFood::CFood(void) : HP(0), translation(0.7f, -0.5f, -1.f), Charge(0.f)
+CFood::CFood(void) : HP(0), translation(0.7f, -0.5f, -1.f), Charge(0.f), useCD(0.3f)
 {
+	itemID = CItem::FOOD;
 }
 
 CFood::~CFood(void)
@@ -97,20 +98,28 @@ unsigned int CFood::getHP(void)
 	return HP;
 }
 
+void CFood::setCharge(float Charge)
+{
+	this->Charge = Charge;
+}
+
 void CFood::Update(double dt)
 {
-	if (Application::IsMousePressed(1))
+	if (Application::IsMousePressed(1) && useCD >= 0.3f)
 	{
 		Rise(Charge, dt, 1);
 		BobY(dt);
+
+		if (Charge == 1 && !use)
+		{
+			use = true;
+			useCD = 0;
+		}
 	}
 	else
-	{
-		//if (Charge == 1 && !use)
-		//	use = true;
-		//else
-			Charge = 0;
-	}
+		Charge = 0;
+
+	useCD += dt;
 }
 
 void CFood::Bob(double dt)
@@ -128,12 +137,13 @@ void CFood::BobY(double dt)
 
 void CFood::RenderItem(MS& modelStack)
 {
-	if (Charge == 0)
-		modelStack.Translate(currentWeapbobX + translation.x, currentWeapbobY + translation.y, translation.z);
-	else
-		modelStack.Translate(0, bobY + translation.y, translation.z);
-	if (Charge == 0)
-		modelStack.Rotate(-45, 0, 1, 0);
+	float C = Charge * 8;
+	C = C > 1 ? 1 : C;
+
+	modelStack.Translate(0, translation.y, translation.z);
+	modelStack.Translate((currentWeapbobX + translation.x) * (1 - C), currentWeapbobY * (1 - C), 0);
+	modelStack.Translate(0, bobY * C, 0);
+	modelStack.Rotate(-45 * (1 - C), 0, 1, 0);
 	modelStack.Rotate(90, 1, 0, 0);
 	modelStack.Scale(2, 4, 2);
 }

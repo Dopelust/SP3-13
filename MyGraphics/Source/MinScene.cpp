@@ -89,7 +89,7 @@ void MinScene::Init()
 	maxShadowCoord.Set(48, 24, 48);
 	showMap = false;
 
-	for (unsigned i = 0; i < 256; ++i)
+	for (unsigned i = 0; i < 128; ++i)
 	{
 		unsigned id = rand() % NumEntities;
 
@@ -97,11 +97,11 @@ void MinScene::Init()
 		{
 		case Entity::ENEMY_1: case Entity::ENEMY_2: case Entity::ENEMY_3:
 			{
-				Enemy* entity = new Enemy(2, 4.0, 3.0);
+				Living* entity = new Living();
 				entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
 				entity->hOrientation = rand() % 360;
-				entity->collision.hitbox.Set(0.6f, 1.8f, 0.6f);
-				entity->collision.centre.Set(0, 0.9f, 0);
+				entity->collision.hitbox.Set(0.6f, 2.f, 0.6f);
+				entity->collision.centre.Set(0, 1.f, 0);
 				entity->entityID = id;
 				worldLivingThings[id].push_back(entity);
 				break;
@@ -374,6 +374,8 @@ void MinScene::ObtainBlockList()
 	Vector3 index = PositionToIndex(camera->position);
 	int zBegin = Math::Max(0, (int)(index.z - RenderDist));
 	int zEnd = Math::Min(worldZ, (int)(index.z + RenderDist)); zEnd = zEnd < 0 ? 0 : zEnd;
+	int yBegin = Math::Max(15, (int)(index.y - RenderDist));
+	int yEnd = Math::Min(worldY, (int)(index.y + RenderDist)); yEnd = yEnd < 0 ? 0 : yEnd;
 	int xBegin = Math::Max(0, (int)(index.x - RenderDist));
 	int xEnd = Math::Min(worldX, (int)(index.x + RenderDist)); xEnd = xEnd < 0 ? 0 : xEnd;
 
@@ -388,15 +390,17 @@ void MinScene::ObtainBlockList()
 	{
 		for (int z = zEnd - 1; z >= zBegin; --z)
 		{
-			for (unsigned x = xBegin; x < xEnd; ++x)
+			for (unsigned y = yBegin; y < yEnd; ++y)
 			{
-				unsigned yEnd = worldBlockList[x][z].size();
-				for (unsigned y = 0; y < yEnd; ++y)
+				for (unsigned x = xBegin; x < xEnd; ++x)
 				{
-					blockList.push_back(worldBlockList[x][y][z]);
+					if (worldBlockList[x][y][z])
+					{
+						blockList.push_back(worldBlockList[x][y][z]);
 
-					if (worldBlockList[x][y][z]->type == Block::TRANS)
-						alphaBlockList.push_back(worldBlockList[x][y][z]);
+						if (worldBlockList[x][y][z]->type == Block::TRANS)
+							alphaBlockList.push_back(worldBlockList[x][y][z]);
+					}
 				}
 			}
 		}
@@ -405,15 +409,17 @@ void MinScene::ObtainBlockList()
 	{
 		for (int z = zEnd - 1; z >= zBegin; --z)
 		{
-			for (int x = xEnd - 1; x >= xBegin; --x)
+			for (unsigned y = yBegin; y < yEnd; ++y)
 			{
-				unsigned yEnd = worldBlockList[x][z].size();
-				for (unsigned y = 0; y < yEnd; ++y)
+				for (int x = xEnd - 1; x >= xBegin; --x)
 				{
-					blockList.push_back(worldBlockList[x][y][z]);
+					if (worldBlockList[x][y][z])
+					{
+						blockList.push_back(worldBlockList[x][y][z]);
 
-					if (worldBlockList[x][y][z]->type == Block::TRANS)
-						alphaBlockList.push_back(worldBlockList[x][y][z]);
+						if (worldBlockList[x][y][z]->type == Block::TRANS)
+							alphaBlockList.push_back(worldBlockList[x][y][z]);
+					}
 				}
 			}
 		}
@@ -422,15 +428,17 @@ void MinScene::ObtainBlockList()
 	{
 		for (unsigned z = zBegin; z < zEnd; ++z)
 		{
-			for (unsigned x = xBegin; x < xEnd; ++x)
+			for (unsigned y = yBegin; y < yEnd; ++y)
 			{
-				unsigned yEnd = worldBlockList[x][z].size();
-				for (unsigned y = 0; y < yEnd; ++y)
+				for (unsigned x = xBegin; x < xEnd; ++x)
 				{
-					blockList.push_back(worldBlockList[x][y][z]);
+					if (worldBlockList[x][y][z])
+					{
+						blockList.push_back(worldBlockList[x][y][z]);
 
-					if (worldBlockList[x][y][z]->type == Block::TRANS)
-						alphaBlockList.push_back(worldBlockList[x][y][z]);
+						if (worldBlockList[x][y][z]->type == Block::TRANS)
+							alphaBlockList.push_back(worldBlockList[x][y][z]);
+					}
 				}
 			}
 		}
@@ -451,11 +459,11 @@ void MinScene::PartitionCollision()
 			if (LivingThings[j][i]->IsActive() && !LivingThings[j][i]->IsDead())
 			{
 				Vector3 Position = PositionToIndex(LivingThings[j][i]->position);
-				for (int x = Position.x - 1; x < Position.x + 1; ++x)
+				for (int x = Position.x - 1; x <= Position.x + 1; ++x)
 				{
-					for (int y = Position.y - 3; y < Position.y + 3; ++y)
+					for (int z = Position.z - 1; z <= Position.z + 1; ++z)
 					{
-						for (int z = Position.z - 1; z < Position.z + 1; ++z)
+						for (int y = Position.y - 2; y <= Position.y + 2; ++y)
 						{
 							if (x >= 0 && x < worldX && y >= 0 && y < worldY && z >= 0 && z < worldZ)
 							{
@@ -642,8 +650,12 @@ void MinScene::Update_Game(double dt)
 				break;
 			}
 			case CItem::KNIFE:
+			{
 				if (selectedEntity)
 				{
+					if (selectedEntity->entityID == Entity::DROP || selectedEntity->entityID == Entity::ARROW)
+						break;
+
 					selectedEntity->aggro = &player;
 					selectedEntity->Knockback((selectedEntity->position - camera->position) * 10);
 					for (unsigned l = 0; l < 5; ++l)
@@ -653,7 +665,7 @@ void MinScene::Update_Game(double dt)
 					{
 						for (unsigned l = 0; l < 10; ++l)
 							SpawnParticle(selectedEntity->position + selectedEntity->collision.centre, 15); //Generate more blood
-						
+
 						selectedEntity->ClearArrows();
 						selectedEntity->SetActive(false);
 
@@ -674,6 +686,16 @@ void MinScene::Update_Game(double dt)
 						selectedEntity = NULL;
 					}
 				}
+				break;
+			}
+			case CItem::FOOD:
+			{
+				if (player.health < 100)
+					player.health+=5;
+				player.health = player.health > 100 ? 100 : player.health;
+
+				break;
+			}
 			}
 
 			player.getSelectedItem()->use = false;
@@ -820,7 +842,7 @@ void MinScene::Update(double dt)
 
 			LivingThings[j][i]->Update(dt, false);
 
-			if (j == 4) //If Arrows,
+			if (j == Entity::ARROW) //If Arrows,
 			{
 				Block arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
 
@@ -903,6 +925,35 @@ void MinScene::Update(double dt)
 						--i;
 						--count;
 						break;
+					}
+				}
+			}
+			else if (j != Entity::DROP)
+			{
+				Block NPC(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
+
+				for (unsigned j2 = 0; j2 < NumEntities; ++j2) //Check with the other entities
+				{
+					if (j2 == Entity::ARROW || j2 == Entity::DROP) //Which are not arrows/drops
+						continue;
+
+					unsigned count2 = LivingThings[j2].size();
+
+					for (unsigned k = 0; k < count2; ++k)
+					{
+						if (LivingThings[j][i] == LivingThings[j2][k])
+							continue;
+
+						Block NPC2(LivingThings[j2][k]->position, LivingThings[j2][k]->collision.centre, LivingThings[j2][k]->collision.hitbox);
+
+						if (Block::checkCollision(NPC2, NPC)) //If 2 entities collide
+						{
+							Vector3 NPCDir = LivingThings[j][i]->position - LivingThings[j2][k]->position;
+							Vector3 NPC2Dir = LivingThings[j2][k]->position - LivingThings[j][i]->position;
+
+							LivingThings[j][i]->kbVelocity += NPCDir * 0.5f;
+							LivingThings[j2][k]->kbVelocity += NPC2Dir * 0.5f;
+						}
 					}
 				}
 			}
@@ -1386,9 +1437,11 @@ void MinScene::RenderEntities_GPass()
 			}
 
 			modelStack.PushMatrix();
+			modelStack.Rotate(LivingThings[j][i]->headOrientation, 0, 1, 0);
 			MMat[0].push_back(modelStack.Top());
-			MMat[1].push_back(modelStack.Top());
 			modelStack.PopMatrix();
+
+			MMat[1].push_back(modelStack.Top());
 
 			modelStack.PushMatrix();
 			modelStack.Translate(0, 1.5f, 0);
@@ -1572,7 +1625,11 @@ void MinScene::RenderEntities()
 				continue;
 			}
 
+			modelStack.PushMatrix();
+			modelStack.Rotate(LivingThings[j][i]->headOrientation, 0, 1, 0);
 			MMat[j][0].push_back(modelStack.Top());
+			modelStack.PopMatrix();
+
 			MMat[j][1].push_back(modelStack.Top());
 
 			modelStack.PushMatrix();
@@ -1774,6 +1831,8 @@ void MinScene::RenderScene()
 			}
 		}
 
+		vector<Mtx44>RayMMat;
+
 		for (unsigned j = 0; j < NumEntities; ++j)
 		{
 			count = LivingThings[j].size();
@@ -1785,9 +1844,20 @@ void MinScene::RenderScene()
 				modelStack.Scale(LivingThings[j][i]->collision.hitbox);
 				MMat.push_back(modelStack.Top());
 				modelStack.PopMatrix();
+
+				if (j == Entity::ENEMY_1 || j == Entity::ENEMY_2 || j == Entity::ENEMY_3)
+				{
+					modelStack.PushMatrix();
+					modelStack.Translate(LivingThings[j][i]->position.x, LivingThings[j][i]->position.y + 1.75f, LivingThings[j][i]->position.z);
+					modelStack.Rotate(LivingThings[j][i]->headOrientation + LivingThings[j][i]->hOrientation, 0, 1, 0);
+					modelStack.Scale(32);
+					RayMMat.push_back(modelStack.Top());
+					modelStack.PopMatrix();
+				}
 			}
 		}
 
+		RenderInstance(meshList["RAY"], RayMMat.size(), &RayMMat[0], false, Color(1,0,0));
 		RenderInstance(meshList["WIREBLOCK"], MMat.size(), &MMat[0], false);
 	}
 
@@ -2073,35 +2143,53 @@ void MinScene::Render2D()
 
 	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + 200 * 0.5f, 450, 0);
+	modelStack.Translate(8 + 200 * 0.5f, 200, 0);
 	modelStack.Scale(200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + (ZoneBar/MaxZoneTime) * 200 * 0.5f, 450, 0);
+	modelStack.Translate(8 + (ZoneBar/MaxZoneTime) * 200 * 0.5f, 200, 0);
 	modelStack.Scale((ZoneBar / MaxZoneTime) * 200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
 
-	color.Set(1,1,0);
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
+
+	color.Set(1,1,0);
 	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
 
 	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + 200 * 0.5f, 350, 0);
+	modelStack.Translate(8 + 200 * 0.5f, 225, 0);
 	modelStack.Scale(200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f, 350, 0);
+	modelStack.Translate(8 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f, 225, 0);
 	modelStack.Scale((player.SprintBar / player.MaxSprintTime) * 200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
 	meshList["QUAD"]->textureID = NULL;
 	
+	color.Set(0.8f, 0, 0);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + 200 * 0.5f, 250, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(8 + (player.health / 100) * 200 * 0.5f, 250, 0);
+	modelStack.Scale((player.health / 100) * 200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 }
 

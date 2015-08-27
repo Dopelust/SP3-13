@@ -58,7 +58,9 @@ public:
 	void BobY(double dt);
 	void RenderItem(MS& modelStack);
 
-
+	void setCharge(float Charge);
+	
+	float useCD;
 };
 
 class CWeapon : public CItem

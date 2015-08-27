@@ -30,7 +30,8 @@ void Entity::RenderObject(MS& modelStack)
 void Entity::Knockback(Vector3 dir)
 {
 	kbVelocity.x += dir.x;
-	velocity.y += 5;
+	if (velocity.y <= 0)
+		velocity.y += 5;
 	kbVelocity.z += dir.z;
 
 	vector<char*> soundFileName;

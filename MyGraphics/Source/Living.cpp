@@ -13,7 +13,6 @@ Living::~Living()
 void Living::Update(double dt, bool RestrictMovement)
 {
 	initialPos = position;
-	initialVel = velocity;
 
 	if (aggro)
 	{
@@ -21,9 +20,9 @@ void Living::Update(double dt, bool RestrictMovement)
 		timeToGo = 0;
 
 		Vector3 dir = dir.SphericalToCartesian(hOrientation, 0);
-		Vector3 dest = aggro->position - position; dest.y = 0; dest.Normalize();
+		Vector3 dest = Vector3(aggro->position.x, 0, aggro->position.z) - Vector3(position.x, 0, position.z); dest.Normalize();
 
-		hOrientation += dt * velocity.Cross(dest).y * 300;
+		hOrientation += dt * dir.Cross(dest).y * 300;
 
 		dir.SphericalToCartesian(hOrientation, 0); dir *= 3;
 		velocity.x = dir.x; velocity.z = dir.z;
@@ -65,6 +64,7 @@ void Living::Update(double dt, bool RestrictMovement)
 		}
 	}
 
+	initialVel = velocity;
 	position += velocity * dt;
 	position += kbVelocity * dt;
 
@@ -81,14 +81,20 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	RespondToCollision(this->collisionBlockList);
 
-	if (timeToGo || aggro)
-	if ((initialPos.x == position.x || initialPos.z == position.z) && velocity.y == 0 && !velocity.IsZero())
-		velocity.y = 7;
+	if ( (timeToGo || aggro) && !timeToStop)
+		if (!jump && ( (initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z) ) && velocity.y == 0)
+		{
+			velocity.y = 8.25f;
+			jump = true;
+		}
 
 	if (aggro)
 		Animate(dt * 2);
 	else
 		Animate(dt);
+
+	if (velocity.y == 0)
+		jump = false;
 
 	hitTimer += dt;
 }

@@ -147,6 +147,7 @@ void SceneBase::InitMesh()
 	meshList["QUAD"] = MeshBuilder::GenerateXYQuad("Quad", Color(1, 1, 1), 1, 1, 1);
 
 	meshList["LINE"] = MeshBuilder::GenerateLine("Line", Color(1, 1, 1), 1.f);
+	meshList["RAY"] = MeshBuilder::GenerateRay("Ray", Color(1, 1, 1), 1);
 
 	meshList["AXES"] = MeshBuilder::GenerateAxes("reference");
 
@@ -304,11 +305,8 @@ void SceneBase::RenderInstance(Mesh *mesh, unsigned NumInstance, const Mtx44* MM
 	else
 		glUniform1i(m_parameters[U_LIGHTENABLED], 0);
 
-	if (color.r != 1 && color.g != 1 && color.b != 1)
-	{
-		glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
-		glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &color.r);
-	}
+	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);
+	glUniform3fv(m_parameters[U_TEXT_COLOR], 1, &color.r);
 
 	if (mesh->textureID > 0)
 		glUniform1i(m_parameters[U_COLOR_TEXTURE_ENABLED], 1);

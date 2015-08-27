@@ -104,6 +104,38 @@ Mesh* MeshBuilder::GenerateLine(const std::string &meshName, Color color, float 
 
 	return mesh;
 }
+
+Mesh* MeshBuilder::GenerateRay(const std::string &meshName, Color color, float length)
+{
+	Vertex v;
+	std::vector<Vertex> vertex_buffer_data;
+
+	v.pos.Set(0, 0, length);
+	v.color = color;
+	vertex_buffer_data.push_back(v);
+
+	v.pos.Set(0, 0, 0);
+	v.color = color;
+	vertex_buffer_data.push_back(v);
+
+	std::vector<GLuint> index_buffer_data;
+
+	unsigned int index[2] = {
+		1,0
+	};
+
+	for (int i = 0; i < 6; i++)
+	{
+		index_buffer_data.push_back(index[i]);
+	}
+
+	Mesh *mesh = new Mesh(meshName, vertex_buffer_data, index_buffer_data);
+
+	mesh->indexSize = index_buffer_data.size();
+	mesh->mode = Mesh::DRAW_LINES;
+
+	return mesh;
+}
 /******************************************************************************/
 /*!
 \brief
