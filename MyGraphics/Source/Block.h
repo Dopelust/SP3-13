@@ -9,7 +9,7 @@ This is the collsion class using AABB.
 /******************************************************************************/
 #ifndef BLOCK_H
 #define BLOCK_H
-#define NumBlocks 17
+#define NumBlocks 20
 
 #include "vertex.h"
 #include "MatrixStack.h"

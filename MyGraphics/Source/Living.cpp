@@ -1,41 +1,174 @@
 #include "Living.h"
 #include "Utility.h"
 
-Living::Living() : timeToStop(0), timeToGo(0), hitRate(0.3f), hitTimer(0)
+Wolf::Wolf() : timeToStop(0), timeToGo(0)
 {
 	timeToGo = rand() % 10 + 1;
+}
+Wolf::~Wolf()
+{
+}
+
+Living::Living() : hitRate(0.3f), hitTimer(0)
+{
+	maxViewRange = 24;
 }
 
 Living::~Living()
 {
 }
 
-void Living::Update(double dt, bool RestrictMovement)
+bool Living::IsLiving()
+{
+	return true;
+}
+
+bool Living::canAttack()
+{
+	return hitTimer > hitRate;
+}
+void Living::Attack()
+{
+	hitTimer = 0;
+}
+
+Sentry::Sentry()
+{
+	hitRate = 1;
+}
+Sentry::~Sentry()
+{
+}
+
+void Sentry::Update(double dt, bool RestrictMovement)
+{
+	Living::Update(dt, RestrictMovement);
+
+	if (aggro)
+		Animate(dt * 2);
+	else
+		Animate(dt);
+
+}
+
+void Sentry::Animate(double dt)
+{
+	Living::Animate(dt);
+
+	if (!aggro)
+	{
+		headBob += dt * 100;
+	}
+	else
+	{
+		if ((int)headBob % 180 != 0)
+		{
+			int valueToRise = headBob;
+			while (valueToRise % 180 != 0)
+			{
+				valueToRise++;
+			}
+
+			Rise(headBob, dt * 100, valueToRise);
+		}
+
+		vOrientation < 0 ? Rise(vOrientation, dt * 100, 0) : Fall(vOrientation, dt * 100, 0);
+	}
+	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
+}
+
+Knight::Knight() : originalOrientation(0), orient(0), orientTimer(0), turnLeft(false)
+{
+}
+Knight::~Knight()
+{
+}
+
+void Knight::Update(double dt, bool RestrictMovement)
+{
+	float newOrientation = originalOrientation + orient * 90;
+	newOrientation > hOrientation ? Rise(hOrientation, dt * 20, newOrientation) : Fall(hOrientation, dt * 20, newOrientation);
+
+	Living::Update(dt, RestrictMovement);
+	
+	if (aggro)
+		Animate(dt * 2);
+	else
+		Animate(dt);
+
+}
+
+void Knight::Animate(double dt)
+{
+	Living::Animate(dt);
+
+	if (!aggro && hOrientation == originalOrientation + orient * 90)
+	{
+		orientTimer += dt;
+
+		if (orientTimer >= 10)
+		{
+			orient = turnLeft ? orient - 1 : orient + 1;
+
+			if (orient > 1)
+			{
+				turnLeft = true;
+				orient = 0;
+			}
+			else if (orient < -1)
+			{
+				turnLeft = false;
+				orient = 0;
+			}
+
+			orientTimer = 0;
+		}
+
+		headBob += dt * 100;
+	}
+	else
+	{
+		if ((int)headBob % 180 != 0)
+		{
+			int valueToRise = headBob;
+			while (valueToRise % 180 != 0)
+			{
+				valueToRise++;
+			}
+
+			Rise(headBob, dt * 100, valueToRise);
+		}
+	}
+	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
+}
+
+void Wolf::Update(double dt, bool RestrictMovement)
 {
 	initialPos = position;
 
 	if (aggro)
 	{
-		timeToStop = 0;
-		timeToGo = 0;
+		Entity* A = aggro;
+		if (aggro->mount)
+			A = aggro->mount;
 
 		Vector3 dir = dir.SphericalToCartesian(hOrientation, 0);
-		Vector3 dest = Vector3(aggro->position.x, 0, aggro->position.z) - Vector3(position.x, 0, position.z); dest.Normalize();
+		Vector3 dest = Vector3(A->position.x, 0, A->position.z) - Vector3(position.x, 0, position.z); dest.Normalize();
 
 		hOrientation += dt * dir.Cross(dest).y * 300;
 
 		dir.SphericalToCartesian(hOrientation, 0); dir *= 3;
 		velocity.x = dir.x; velocity.z = dir.z;
 
-		if (velocity.y == 0 && hitTimer >= hitRate)
+		if (velocity.y == 0 && canAttack())
 		{
-			if (position.DistSquared(aggro->position) < 1.5f*1.5f)
+			if (position.DistSquared(A->position) < 1.5f*1.5f)
 			{
 				velocity.y = 6;
-				aggro->Knockback(dir * 15);
+				A->Knockback(dir * 15);
 			}
 
-			hitTimer = 0.f;
+			Attack();
 		}
 	}
 	else if (timeToGo > 0)
@@ -81,8 +214,8 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	RespondToCollision(this->collisionBlockList);
 
-	if ( (timeToGo || aggro) && !timeToStop)
-		if (!jump && ( (initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z) ) && velocity.y == 0)
+	if ((timeToGo || aggro) && !timeToStop)
+		if (!jump && ((initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z)) && velocity.y == 0)
 		{
 			velocity.y = 8.25f;
 			jump = true;
@@ -97,6 +230,91 @@ void Living::Update(double dt, bool RestrictMovement)
 		jump = false;
 
 	hitTimer += dt;
+	WorldBorderCheck();
+}
+
+void Wolf::Animate(double dt)
+{
+	Living::Animate(dt);
+
+	if (timeToStop > 0)
+	{
+		headBob += dt * 100;
+	}
+	else if ((int)headBob % 180 != 0)
+	{
+		int valueToRise = headBob;
+		while (valueToRise % 180 != 0)
+		{
+			valueToRise++;
+		}
+
+		Rise(headBob, dt * 100, valueToRise);
+	}
+	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
+}
+
+void Living::Update(double dt, bool RestrictMovement)
+{
+	initialPos = position;
+
+	if (aggro)
+	{
+		viewRange = 0;
+
+		Entity* A = aggro;
+		if (aggro->mount)
+			A = aggro->mount;
+
+		Vector3 dir = dir.SphericalToCartesian(hOrientation, 0);
+		Vector3 dest = Vector3(A->position.x, 0, A->position.z) - Vector3(position.x, 0, position.z); dest.Normalize();
+
+		hOrientation += dt * dir.Cross(dest).y * 300;
+
+		dir.SphericalToCartesian(hOrientation, 0); dir *= 3;
+		velocity.x = dir.x; velocity.z = dir.z;
+
+		if (velocity.y == 0 && hitTimer >= hitRate)
+		{
+			if (position.DistSquared(A->position) < 1.5f*1.5f)
+			{
+				velocity.y = 6;
+				A->Knockback(dir * 15);
+			}
+
+			hitTimer = 0.f;
+		}
+	}
+
+	initialVel = velocity;
+	position += velocity * dt;
+	position += kbVelocity * dt;
+
+	velocity.x += -velocity.x * 16 * dt;
+	velocity.z += -velocity.z * 16 * dt;
+	kbVelocity += -kbVelocity * 16 * dt;
+
+	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
+	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
+	kbVelocity.x = kbVelocity.x > -0.1f && kbVelocity.x < 0.1f ? 0 : kbVelocity.x;
+	kbVelocity.z = kbVelocity.z > -0.1f && kbVelocity.z < 0.1f ? 0 : kbVelocity.z;
+
+	velocity.y -= 30 * dt;
+
+	RespondToCollision(this->collisionBlockList);
+
+	if (aggro)
+		if (!jump && ((initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z)) && velocity.y == 0)
+		{
+			velocity.y = 8.25f;
+			jump = true;
+		}
+
+	if (velocity.y == 0)
+		jump = false;
+
+	hitTimer += dt;
+	WorldBorderCheck();
 }
 
 void Living::Animate(double dt)
@@ -115,22 +333,6 @@ void Living::Animate(double dt)
 
 		Rise(Steps, dt * 300, valueToRise);
 	}
-
-	if (timeToStop > 0)
-	{
-		headBob += dt * 100;
-	}
-	else if ((int)headBob % 180 != 0)
-	{
-		int valueToRise = headBob;
-		while (valueToRise % 180 != 0)
-		{
-			valueToRise++;
-		}
-
-		Rise(headBob, dt * 100, valueToRise);
-	}
-	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
 }
 
 Arrow::Arrow() : relativePosition(0,0,0), relativeOrientation(0)

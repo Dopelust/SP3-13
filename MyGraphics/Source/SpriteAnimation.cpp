@@ -72,6 +72,14 @@ void SpriteAnimation::Render()
 	glDrawElements(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_INT, (void*)(m_currentFrame * 6 * sizeof(GLuint)));
 } 
 
+void SpriteAnimation::Render(unsigned NumInstance, const Mtx44* MMat)
+{
+	glBindBuffer(GL_ARRAY_BUFFER, MBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Mtx44) * NumInstance, MMat, GL_DYNAMIC_DRAW);
+
+	glBindVertexArray(VAO);
+	glDrawElementsInstanced(GL_TRIANGLE_STRIP, 6, GL_UNSIGNED_INT, (void*)(m_currentFrame * 6 * sizeof(GLuint)), NumInstance);
+}
 void SpriteAnimation::reset()
 {
 	m_anim->startFrame = m_anim->default_startFrame;

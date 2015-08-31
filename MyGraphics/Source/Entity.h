@@ -20,7 +20,7 @@ class Entity
 public:
 	enum EntityIDs
 	{
-		ENEMY_1,
+		SENTRY,
 		ENEMY_2,
 		ENEMY_3,
 		HORSE,
@@ -58,13 +58,20 @@ public:
 	bool IsDead();
 	void SetDead(bool dead);
 
+	virtual bool IsLiving();
+
 	virtual void Update(double dt);
 	virtual void Update(double dt, bool RestrictMovement);
 	virtual void RespondToCollision(const vector<Block*>&object);
 	virtual void RenderObject(MS& modelStack);
+	virtual bool canAttack();
+	virtual void Attack();
+
+	void WorldBorderCheck();
 
 	float climbHeight;
 
+	Entity* mount;
 	Entity* aggro;
 	virtual float getSkeletalRotation();
 	void Knockback(Vector3 dir);
@@ -73,6 +80,8 @@ public:
 
 	float Steps;
 	float health;
+	float viewRange;
+	float maxViewRange;
 protected:
 	bool active;
 	bool dead;

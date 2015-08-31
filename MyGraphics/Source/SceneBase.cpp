@@ -175,6 +175,15 @@ void SceneBase::InitMesh()
 	meshList["KNIFE"] = MeshBuilder::GenerateOBJ("Knife", "Assets//M9.obj");
 	meshList["KNIFE"]->textureID = Load2DTGA("Assets//Knife.tga");
 
+	meshList["WATER"] = MeshBuilder::GenerateSpriteAnimation("Water", 4, 4, 1, 1);
+	meshList["WATER"]->textureID = LoadTGA("Assets//water.tga", false);
+	SpriteAnimation* sa = dynamic_cast<SpriteAnimation*>(meshList["WATER"]);
+	if (sa)
+	{
+		sa->m_anim = new Animation();
+		sa->m_anim->Set(0, 15, 1.4f, Animation::LOOP);
+	}
+
 	meshList["HEAD"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Head.obj");
 	meshList["BODY"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//Body.obj");
 	meshList["L_ARM"] = MeshBuilder::GenerateOBJ("Block", "Assets//Player//LeftArm.obj");
@@ -187,6 +196,7 @@ void SceneBase::InitMesh()
 	meshList["WOLF_TAIL"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Tail.obj");
 	meshList["WOLF_LEG"] = MeshBuilder::GenerateOBJ("Block", "Assets//Wolf//Leg.obj");
 
+	textureID["ORB"] = Load2DTGA("Assets//particle.tga", false, false);
 	textureID["MAP"] = Load2DTGA("Assets//map.tga", false, false);
 	textureID["MAP_LION"] = Load2DTGA("Assets//lion.tga", false, false);
 	textureID["MAP_CASTLE"] = Load2DTGA("Assets//castle.tga", false, false);
@@ -201,6 +211,7 @@ void SceneBase::InitMesh()
 	textureID["PLAYER4"] = Load2DTGA("Assets//Player//silver.tga");
 	textureID["WOLF"] = Load2DTGA("Assets//Wolf//wolf.tga");
 	textureID["SPIRITBAR"] = Load2DTGA("Assets//SpiritBar.tga", false);
+	textureID["MENU_BUTTON"] = Load2DTGA("Assets//Menu//button.tga", false);
 
 	cout << "Mesh Loaded." << endl << endl;
 }
@@ -249,16 +260,11 @@ void SceneBase::Update(double dt)
 			peakFPS = fps;
 	}
 
-	SpriteAnimation *sa = dynamic_cast<SpriteAnimation*>(meshList["SPRITE"]);
+	SpriteAnimation *sa = dynamic_cast<SpriteAnimation*>(meshList["WATER"]);
 	if(sa)
 	{
 		sa->Update(dt);
 	}
-	sa = dynamic_cast<SpriteAnimation*>(meshList["EXPLOSION"]);
-	if(sa)
-	{
-		sa->Update(dt);
-	} 
 }
 
 void SceneBase::RenderText(std::string text, Color color, Mesh* mesh)

@@ -13,12 +13,53 @@ public:
 	float hitTimer;
 
 	float headBob;
+
+	virtual void Update(double dt, bool RestrictMovement);
+	virtual void Animate(double dt);
+	bool canAttack();
+	void Attack();
+	
+	bool IsLiving();
+};
+
+class Wolf : public Living
+{
+public:
+	Wolf();
+	~Wolf();
+
 	float newOrientation;
 
 	float timeToStop;
 	float timeToGo;
 
 	virtual void Update(double dt, bool RestrictMovement);
+	virtual void Animate(double dt);
+};
+
+class Knight : public Living
+{
+public:
+	Knight();
+	~Knight();
+
+	int orient;
+	float orientTimer;
+	float originalOrientation;
+
+	bool turnLeft;
+
+	void Update(double dt, bool RestrictMovement);
+	void Animate(double dt);
+};
+
+class Sentry : public Living
+{
+public:
+	Sentry();
+	~Sentry();
+
+	void Update(double dt, bool RestrictMovement);
 	void Animate(double dt);
 };
 

@@ -33,7 +33,6 @@ public:
 	Camera3 camera;
 	CInventory inventory;
 	float WALK_SPEED;
-	Entity* mount;
 
 	float eyeLevel;
 	

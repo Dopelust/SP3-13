@@ -43,6 +43,7 @@ public:
 	~SpriteAnimation();
 	void Update(double dt);
 	virtual void Render();
+	void Render(unsigned NumInstance, const Mtx44* MMat);
 
 	int m_row;
 	int m_col;

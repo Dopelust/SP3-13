@@ -124,7 +124,7 @@ void main(){
 		vec3 N = normalize( vertexNormal_cameraspace );
 		
 		// Ambient : simulates indirect lighting
-		color = materialColor * vec4(material.kAmbient, 1);
+		color = materialColor * vec4(material.kAmbient, fragmentAlpha);
 		float a = color.a;
 
 		for(int i = 0; i < numLights; ++i)

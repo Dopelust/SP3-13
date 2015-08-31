@@ -56,7 +56,7 @@ void Player::Update(double dt, bool RestrictMovement)
 {
 	if (mount && !mount->IsActive())
 		mount = NULL;
-
+	
 	sneak = false;
 	initialVel = velocity;
 	initialPos = position;
@@ -394,6 +394,8 @@ void Player::Update(double dt, bool RestrictMovement)
 	{
 		myKeys[i] = false;
 	}
+
+	WorldBorderCheck();
 }
 
 float Player::get_apparentHP(float upon)

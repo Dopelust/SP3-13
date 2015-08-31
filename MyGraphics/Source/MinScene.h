@@ -26,9 +26,33 @@ using namespace irrklang;
 #define worldY 48
 #define worldZ 256
 
+struct Button
+{
+	Button() : selected(false) {}
+
+	Vector3 position;
+	Vector3 scale;
+	float textScale;
+	float min_textScale;
+	float max_textScale;
+	Vector3 hitbox;
+	string name;
+
+	bool canSelect;
+	bool selected;
+};
+
 class MinScene : public SceneShadow
 {
 public:
+	enum MinState
+	{
+		NULL_STATE,
+		MENU,
+		PLAY,
+		CREDITS,
+	};
+
 	MinScene();
 	~MinScene();
 
@@ -43,6 +67,7 @@ public:
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
 	bool FetchStair(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % (NumBlocks - 3) + 3, int orientation = 0, int look = 0);
 	bool SpawnParticle(Vector3 pos, unsigned id);
+	Particle* FetchParticle(unsigned id);
 	void UpdateInput(const unsigned char key);
 
 	void Render();
@@ -65,7 +90,7 @@ private:
 	Block* worldBlockList[worldX][worldY][worldZ];
 	vector<Block*> blockList;
 	vector<Block*> alphaBlockList;
-	vector<Particle> particleList;
+	vector<Particle*> particleList;
 	void ObtainBlockList();
 	void PartitionCollision();
 	BlockFactory blockInventory;
@@ -104,6 +129,17 @@ private:
 	bool showMap;
 	Waypoint playerWaypoint;
 	vector<Waypoint> waypointList;
+	void UnleashTheHounds();
+
+	ISound* menuSound;
+	Camera3 menuCamera;
+	vector<Button> menuTitle;
+	vector<Button> menuButtons;
+	MinState GameState;
+	MinState QueuedState;
+	
+	vector<Mtx44> WaterMMat;
+	float screenFade;
 };
 
 #endif

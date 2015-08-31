@@ -29,7 +29,7 @@ public:
 	Mesh(const std::string &meshName, std::vector<Vertex> vertex_buffer_data, std::vector<GLuint> index_buffer_data);
 	virtual ~Mesh();
 	virtual void Render();
-	void Render(unsigned NumInstance, const Mtx44* MMat);
+	virtual void Render(unsigned NumInstance, const Mtx44* MMat);
 	void Render(unsigned NumInstance, const Mtx44* MMat, const TexCoord* offset);
 	void Render(unsigned NumInstance, const Mtx44* MMat, unsigned offset, unsigned count);
 

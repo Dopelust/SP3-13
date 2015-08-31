@@ -1,4 +1,6 @@
 #include "Entity.h"
+#include "MinScene.h"
+
 #include <irrKlang.h>
 
 #pragma comment(lib, "irrKlang.lib")
@@ -7,7 +9,7 @@ using namespace irrklang;
 
 extern ISoundEngine * engine;
 
-Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientation(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f), health(100), aggro(NULL)
+Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientation(0.f), hOrientation(0.f), vOrientation(0), size(1,1,1), mesh(NULL), showOnMinimap(false), jump(false), sneak(false), climbHeight(0.5f), dead(false), Steps(0.f), stepRate(0.f), health(100), aggro(NULL), mount(NULL), viewRange(0), maxViewRange(0)
 {
 	active = true;
 }
@@ -43,7 +45,7 @@ void Entity::Knockback(Vector3 dir)
 		soundFileName.push_back("Assets/Media/Damage/horseCry3.mp3");
 		soundFileName.push_back("Assets/Media/Damage/horseCry4.mp3");
 	}
-	//else if (entityID == ENEMY_1 || entityID == ENEMY_2 || entityID == ENEMY_3)
+	//else if (entityID == SENTRY || entityID == ENEMY_2 || entityID == ENEMY_3)
 	//{
 	//	// Enemy Kenna Hit Sound
 	//	soundFileName.push_back("Assets/Media/Damage/enemyCry1.mp3");
@@ -92,6 +94,24 @@ void Entity::ClearArrows()
 	}
 }
 
+void Entity::WorldBorderCheck()
+{
+	position.x = position.x > (float)worldX*0.5f ? (float)worldX * 0.5f : position.x;
+	position.x = position.x < (float)worldX*-0.5f ? (float)worldX * -0.5f : position.x;
+	position.z = position.z > (float)worldZ*0.5f ? (float)worldZ * 0.5f : position.z;
+	position.z = position.z < (float)worldZ*-0.5f ? (float)worldZ * -0.5f : position.z;
+
+	if (position.y < -9)
+	{
+		position.y = -9;
+		velocity.y = 0;
+	}
+}
+bool Entity::IsLiving()
+{
+	return false;
+}
+
 bool Entity::IsDead()
 {
 	return dead;
@@ -99,6 +119,14 @@ bool Entity::IsDead()
 void Entity::SetDead(bool dead)
 {
 	this->dead = dead;
+}
+
+bool Entity::canAttack()
+{
+	return false;
+}
+void Entity::Attack()
+{
 }
 
 #define eps 0.000001f;
@@ -320,7 +348,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 					else if (position.x + Player.collision.hitbox.x * 0.4f < minCube.x)
 						position.x = minCube.x - Player.collision.hitbox.x * 0.4f;
 				}
-				else if (!stepped)
+				if (!stepped)
 				{
 					stepSound = Block::getStepSound(collidedBlocks[i].id);
 					stepped = true;

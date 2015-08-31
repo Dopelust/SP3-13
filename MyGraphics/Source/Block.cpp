@@ -90,16 +90,10 @@ bool Block::collisionWithCylinder(Vector3 point, float radius)
 
 	return dist_squared > 0;
 }
-float Block::collisionWithRay(Vector3 point, Vector3 dir)
+float Block::collisionWithRay(Vector3 point, Vector3 dirfrac)
 {
 	Vector3 maxCube = getMaxCoord();
 	Vector3 minCube = getMinCoord();
-
-	// r.dir is unit direction vector of ray
-	Vector3 dirfrac;
-	dirfrac.x = 1.0f / dir.x;
-	dirfrac.y = 1.0f / dir.y;
-	dirfrac.z = 1.0f / dir.z;
 
 	// lb is the corner of AABB with minimal coordinates - left bottom, rt is maximal corner
 	// r.org is origin of ray
@@ -116,6 +110,7 @@ float Block::collisionWithRay(Vector3 point, Vector3 dir)
 	// if tmax < 0, ray (line) is intersecting AABB, but whole AABB is behing us
 	if (tmax < 0)
 		return -1;
+
 	// if tmin > tmax, ray doesn't intersect AABB
 	if (tmin > tmax)
 		return -1;
@@ -383,6 +378,8 @@ void BlockFactory::Init()
 	{
 		if (i == 13)
 			blockList.push_back(Block(i, Block::TRANS));
+		else if (i >= 17)
+			blockList.push_back(Block(i, Block::STAIR));
 		else
 		{
 			blockList.push_back(Block(i, Block::DEFAULT));
