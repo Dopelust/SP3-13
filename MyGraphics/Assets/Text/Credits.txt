@@ -1,0 +1,44 @@
+When winter comes for war,
+You shall hear no Lions roar.
+When winter forces you to yield,
+No Stags shall graze upon the field.
+When winter creeps upon you from the shadows,
+No Roses shall bloom from the meadows.
+When winter wreaks havoc on the land,
+You can bet there'll be no Snakes in the sand.
+When winter brings to life all it finds grim,
+The Krakens will freeze where they swim.
+When winter sets and the land begins to shiver,
+The Flayed Man will start to rot and wither.
+When winter fights to the last sliver,
+No more Trouts shall swim in the river.
+When winter ravages and all despair,
+No Falcons shall fly high in the air.
+When winter shows you what happens when snow falls,
+Not even Dragons Breath shall warm you in your halls.
+When winter comes with all it's might,
+Only the Wolves shall howl in the night.
+
+Ricsson Toh:
+AABB Collision
+Wolf - Model, Textures, Movement, AI
+Bow & Arrow
+Entity Death
+
+Nicholas:
+Skill Tree
+Knife
+Slowdown Time
+Sounds
+
+Lazarus Tan:
+Inventory
+Lion - Model, Textures, Movement, AI
+HUD
+Map & Minimap
+
+Job Andrew:
+Interactive Menu
+Enemy - Model, Textures, Movement, AI
+Tutorial
+NPC Dialoguing

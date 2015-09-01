@@ -172,6 +172,9 @@ void SceneBase::InitMesh()
 	meshList["MEAT"] = MeshBuilder::GenerateOBJ("Meat", "Assets//Meat.obj");
 	meshList["MEAT"]->textureID = LoadTGA("Assets//Meat.tga");
 
+	meshList["KEY"] = MeshBuilder::GenerateOBJ("Key", "Assets//Key//Key.obj");
+	meshList["KEY"]->textureID = LoadTGA("Assets//Key//Key.tga");
+
 	meshList["KNIFE"] = MeshBuilder::GenerateOBJ("Knife", "Assets//M9.obj");
 	meshList["KNIFE"]->textureID = Load2DTGA("Assets//Knife.tga");
 
@@ -184,9 +187,11 @@ void SceneBase::InitMesh()
 	textureID["SPRITE_SPRINT"] = Load2DTGA("Assets//Sprites//Sprint.tga",false);
 	textureID["SPRITE_HOURGLASS"] = Load2DTGA("Assets//Sprites//Hourglass.tga",false);
 	textureID["SPRITE_EXP"] = Load2DTGA("Assets//Sprites//EXP.tga",false);
-	textureID["SPRITE_BOW"] = Load2DTGA("Assets//Sprites//Bow.tga");
-	textureID["SPRITE_KNIFE"] = Load2DTGA("Assets//Sprites//dagger.tga");
-	textureID["SPRITE_FOOD"] = Load2DTGA("Assets//Sprites//Food.tga");
+	textureID["SPRITE_BOW"] = Load2DTGA("Assets//Sprites//Bow.tga", false, false);
+	textureID["SPRITE_KNIFE"] = Load2DTGA("Assets//Sprites//dagger.tga", false, false);
+	textureID["SPRITE_FOOD"] = Load2DTGA("Assets//Sprites//Food.tga", false, false);
+
+	textureID["SPRITE_KEY"] = Load2DTGA("Assets//Key//keyicon.tga", false, false);
 
 	SpriteAnimation* sa = dynamic_cast<SpriteAnimation*>(meshList["WATER"]);
 	if (sa)
@@ -216,7 +221,7 @@ void SceneBase::InitMesh()
 	textureID["SELECTOR"] = Load2DTGA("Assets//Selector.tga", false);
 	textureID["SKYBOX"] = LoadTGA("Assets//Skybox.tga");
 	textureID["TEXT"] = Load2DTGA("Assets//Font//font.tga");
-	textureID["PLAYER1"] = Load2DTGA("Assets//Player//steve.tga");
+	textureID["PLAYER1"] = Load2DTGA("Assets//Player//stannis.tga");
 	textureID["PLAYER2"] = Load2DTGA("Assets//Player//gregor.tga");
 	textureID["PLAYER3"] = Load2DTGA("Assets//Player//sand.tga");
 	textureID["PLAYER4"] = Load2DTGA("Assets//Player//silver.tga");

@@ -150,6 +150,9 @@
     <ClCompile Include="Source\Knife.cpp">
       <Filter>Source Files\Game\3D</Filter>
     </ClCompile>
+    <ClCompile Include="Source\PopUpLoader.cpp">
+      <Filter>Source Files\Scenes</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\Camera.h">

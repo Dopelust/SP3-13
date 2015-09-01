@@ -3,6 +3,19 @@
 
 #include "Entity.h"
 
+class NPC : public Entity
+{
+public:
+	NPC();
+	~NPC();
+
+	unsigned id;
+
+	unsigned getSubID();
+	string getSpeech();
+	void Update(double dt, bool RestrictMovement);
+};
+
 class Living : public Entity
 {
 public:

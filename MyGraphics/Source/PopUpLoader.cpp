@@ -178,8 +178,17 @@ bool MinScene::LoadTextSpeech(const char * filepath)
 			ss << data[n];
 
 			modelStack.PushMatrix();
-			modelStack.Translate(Application::m_width * 0.24f, Application::m_height * 0.24f - n * 35, 0);
-			modelStack.Scale(40);
+			modelStack.Translate(-2,-2, 0);
+			modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.3f - n * 35, 0);
+			modelStack.Scale(24);
+			modelStack.Translate(-Application::getTextWidth(ss.str()) * 0.5f, 0, 0);
+			RenderText(ss.str(), Color(0,0,0));
+			modelStack.PopMatrix();
+
+			modelStack.PushMatrix();
+			modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.3f - n * 35, 0);
+			modelStack.Scale(24);
+			modelStack.Translate(-Application::getTextWidth(ss.str()) * 0.5f, 0, 0);
 			RenderText(ss.str(), Color(1, 1, 1));
 			modelStack.PopMatrix();
 
@@ -193,17 +202,13 @@ bool MinScene::LoadTextSpeech(const char * filepath)
 
 void MinScene::RenderPopUpBox()
 {
-	modelStack.PushMatrix();
-	modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.5f, 0);
-
-	modelStack.PushMatrix();
-	modelStack.Translate(0, Application::m_height * (-0.35f), 0);
-	modelStack.Scale(Application::m_width * PopUpAnimTimer, Application::m_height * 0.3f, 1);
-	meshList["QUAD"]->textureID = textureID["POPUP"];  
-	RenderMesh(meshList["QUAD"], false, Color(0.68f,0.68f,0.68f));
-	modelStack.PopMatrix();
-
-	modelStack.PopMatrix();
+	//modelStack.PushMatrix();
+	//modelStack.Translate(Application::m_width - 100, Application::m_height - 300, 0);
+	//modelStack.Translate(0, Application::m_height * (-0.35f), 0);
+	//modelStack.Scale(512 * PopUpAnimTimer, 256, 1);
+	//meshList["QUAD"]->textureID = textureID["POPUP"];  
+	//RenderMesh(meshList["QUAD"], false, Color(0.68f,0.68f,0.68f));
+	//modelStack.PopMatrix();
 
 	if (loadCastleGateText == true)
 		LoadTextSpeech("Assets//Text//CastleBlackGate.txt");

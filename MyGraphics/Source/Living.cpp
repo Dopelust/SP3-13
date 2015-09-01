@@ -1,6 +1,73 @@
 #include "Living.h"
 #include "Utility.h"
 
+#include <irrKlang.h>
+#pragma comment(lib, "irrKlang.lib")
+using namespace irrklang;
+
+NPC::NPC() : id(0)
+{
+}
+
+NPC::~NPC()
+{
+}
+
+unsigned NPC::getSubID()
+{
+	return id;
+}
+
+extern ISoundEngine * engine;
+
+string NPC::getSpeech()
+{
+	string s;
+
+	switch (id)
+	{
+	case 1:
+		if (rand() % 2 == 0)
+		{
+			engine->play3D("Assets/Media/Stannis1.mp3", vec3df(position.x, position.y + 1.62f, position.z));
+			return "This is the right time and I will risk everything, because if I don't, we've lost.";
+		}
+		engine->play3D("Assets/Media/Stannis2.mp3", vec3df(position.x, position.y + 1.62f, position.z));
+		return "We march to victory, or we march to defeat. But we go forward, only forward.";
+	default:
+		if (rand() % 2 == 0)
+		{
+			engine->play3D("Assets/Media/Guard1.mp3", vec3df(position.x, position.y + 1.62f, position.z));
+			return "I used to be an adventurer like you, then I took an arrow in the knee.";
+		}
+		engine->play3D("Assets/Media/Guard2.mp3", vec3df(position.x, position.y + 1.62f, position.z));
+		return "Stannis Baratheon has an army at Castle Black. He means to take the North.";
+	}
+}
+
+void NPC::Update(double dt, bool RestrictMovement)
+{
+	health = INT_MAX;
+
+	if (aggro)
+	{
+		Entity* A = aggro;
+
+		Vector3 dir = dir.SphericalToCartesian(hOrientation + headOrientation, 0);
+		Vector3 dest = Vector3(A->position.x, 0, A->position.z) - Vector3(position.x, 0, position.z); dest.Normalize();
+
+		headOrientation += dt * dir.Cross(dest).y * 300;
+		headOrientation = headOrientation >= 60 ? 60 : headOrientation <= -60 ? -60 : headOrientation;
+	}
+
+	initialPos = position;
+	position += velocity * dt;
+	velocity.y -= 30 * dt;
+
+	RespondToCollision(this->collisionBlockList);
+	WorldBorderCheck();
+}
+
 Wolf::Wolf() : timeToStop(0), timeToGo(0)
 {
 	timeToGo = rand() % 10 + 1;
@@ -148,6 +215,9 @@ void Wolf::Update(double dt, bool RestrictMovement)
 
 	if (aggro)
 	{
+		timeToStop = 0;
+		timeToGo = 0;
+
 		Entity* A = aggro;
 		if (aggro->mount)
 			A = aggro->mount;
@@ -178,7 +248,7 @@ void Wolf::Update(double dt, bool RestrictMovement)
 		else if (newOrientation < hOrientation)
 			Fall(hOrientation, dt * 25, newOrientation);
 
-		Vector3 dir; dir.SphericalToCartesian(hOrientation, 0);
+		Vector3 dir; dir.SphericalToCartesian(hOrientation, 0); dir *= 0.5f;
 		velocity.x = dir.x; velocity.z = dir.z;
 
 		Fall(timeToGo, dt, 0);
@@ -213,6 +283,7 @@ void Wolf::Update(double dt, bool RestrictMovement)
 	velocity.y -= 30 * dt;
 
 	RespondToCollision(this->collisionBlockList);
+	WorldBorderCheck();
 
 	if ((timeToGo || aggro) && !timeToStop)
 		if (!jump && ((initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z)) && velocity.y == 0)
@@ -230,7 +301,6 @@ void Wolf::Update(double dt, bool RestrictMovement)
 		jump = false;
 
 	hitTimer += dt;
-	WorldBorderCheck();
 }
 
 void Wolf::Animate(double dt)
@@ -284,6 +354,7 @@ void Living::Update(double dt, bool RestrictMovement)
 
 			hitTimer = 0.f;
 		}
+		hitTimer += dt;
 	}
 
 	initialVel = velocity;
@@ -302,6 +373,7 @@ void Living::Update(double dt, bool RestrictMovement)
 	velocity.y -= 30 * dt;
 
 	RespondToCollision(this->collisionBlockList);
+	WorldBorderCheck();
 
 	if (aggro)
 		if (!jump && ((initialVel.x != 0 && initialPos.x == position.x) || (initialVel.z != 0 && initialPos.z == position.z)) && velocity.y == 0)
@@ -312,9 +384,6 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	if (velocity.y == 0)
 		jump = false;
-
-	hitTimer += dt;
-	WorldBorderCheck();
 }
 
 void Living::Animate(double dt)

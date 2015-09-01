@@ -1,4 +1,1 @@
-                  Lion's Den
-----------------------------
-Objective:
-- Get the key from the lair
+Lion's Den

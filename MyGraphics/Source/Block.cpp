@@ -226,15 +226,16 @@ TexCoord Block::getTextureOffset(unsigned blockID, blockType type)
 {
 	if (type == MT)
 	{
-		float column = ( (blockID*3) % 6) / 6.f;
-		float row = 1 - (((blockID * 3) / 6) + 1) / 6.f;
+		float column = ((blockID * 3) % 6) * 0.166666f;
+		float row = 1 - ((int)(0.5f + (blockID * 3) * 0.166666f) + 1) * 0.166666f;
 
 		return TexCoord(column, row);
 	}
 
+
 	blockID -= 4;
-	float column = (blockID % 4) / 4.f;
-	float row = 1 - ((blockID / 4)+ 1) / 4.f;
+	float column = (blockID % 4) * 0.25f;
+	float row = 1 - ((int)(blockID * 0.25f) + 1) * 0.25f;
 
 	return TexCoord(column, row);
 }

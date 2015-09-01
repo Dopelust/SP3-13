@@ -60,6 +60,7 @@ public:
 	void Update(double dt);
 	void Update_LevelEditor(double dt);
 	void Update_Game(double dt);
+	void Update_Entity(double dt);
 
 	Entity* FetchEntity(unsigned id);
 	bool GenerateArrow(Entity& source, float strength);
@@ -168,6 +169,9 @@ private:
 	void InitTextStuff();
 	bool LoadTextSpeech(const char* filepath);
 	void RenderPopUpBox();
+
+	string subtitle;
+	float subtitleTimer;
 };
 
 #endif

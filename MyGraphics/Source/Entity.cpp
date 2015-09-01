@@ -22,6 +22,19 @@ void Entity::Update(double dt)
 {
 }
 
+Key::Key()
+{
+}
+
+Key::~Key()
+{
+}
+
+void Key::Update(double dt, bool RestrictMovement)
+{
+	hOrientation += dt * 30;
+}
+
 void Entity::RenderObject(MS& modelStack)
 {
 	modelStack.Translate(position);
@@ -414,4 +427,14 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			position.y = climb;
 		}
 	}
+}
+
+string Entity::getSpeech()
+{
+	return NULL;
+}
+
+unsigned Entity::getSubID()
+{
+	return 0;
 }

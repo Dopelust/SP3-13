@@ -9,7 +9,7 @@
 #include <string>
 #include <vector>
 
-#define NumEntities 7
+#define NumEntities 8
 
 using namespace::std;
 
@@ -21,12 +21,13 @@ public:
 	enum EntityIDs
 	{
 		SENTRY,
-		ENEMY_2,
-		ENEMY_3,
+		KNIGHT,
+		NPC,
 		HORSE,
 		ARROW,
 		WOLF,
 		DROP,
+		KEY,
 		NUM_ENTITIES,
 	};
 
@@ -66,6 +67,8 @@ public:
 	virtual void RenderObject(MS& modelStack);
 	virtual bool canAttack();
 	virtual void Attack();
+	virtual string getSpeech();
+	virtual unsigned getSubID();
 
 	void WorldBorderCheck();
 
@@ -88,6 +91,14 @@ protected:
 	bool sneak;
 	float stepRate;
 	char* stepSound;
+};
+
+class Key : public Entity
+{
+public:
+	Key();
+	~Key();
+	void Update(double dt, bool RestrictMovement);
 };
 
 #endif

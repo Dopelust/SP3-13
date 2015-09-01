@@ -103,6 +103,7 @@
     <ClCompile Include="Source\Living.cpp" />
     <ClCompile Include="Source\Minimap.cpp" />
     <ClCompile Include="Source\Particle.cpp" />
+    <ClCompile Include="Source\PopUpLoader.cpp" />
     <ClCompile Include="Source\SceneShadow.cpp" />
     <ClCompile Include="Source\SpriteAnimation.cpp" />
     <ClCompile Include="Source\LoadOBJ.cpp" />

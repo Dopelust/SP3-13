@@ -169,7 +169,10 @@ void main(){
 	else
 	{
 		if(colorTextureEnabled == true)
+		{
 			color = texture2D( colorTexture, texCoord );
+			color.a *= fragmentAlpha;
+		}
 		else
 			color = vec4( fragmentColor, fragmentAlpha );
 
