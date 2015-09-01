@@ -140,6 +140,33 @@ private:
 	
 	vector<Mtx44> WaterMMat;
 	float screenFade;
+
+	//Popup anim
+	bool showPopUp;
+	bool PopUpFullyLoaded;
+	bool bfLoaded;
+	float PopUpAnimTimer;
+
+	//Loading bools
+	bool loadCastleGateText;
+	bool loadGreeting;
+	bool loadTutorialText1;
+	bool loadOutpostText;
+	bool loadOutpostExit;
+	bool loadLionGreeting;
+	bool loadLionExit;
+	bool loadWinterfellGreeting;
+
+	//Etc variables
+	double TutorialTimer;
+
+	//Text loading functions
+	void LocationTriggers(double dt);
+	void PopUpAnim(double dt);
+	void DirectionCheck(double dt);
+	void InitTextStuff();
+	bool LoadTextSpeech(const char* filepath);
+	void RenderPopUpBox();
 };
 
 #endif

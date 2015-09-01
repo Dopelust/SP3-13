@@ -212,6 +212,7 @@ void SceneBase::InitMesh()
 	textureID["WOLF"] = Load2DTGA("Assets//Wolf//wolf.tga");
 	textureID["SPIRITBAR"] = Load2DTGA("Assets//SpiritBar.tga", false);
 	textureID["MENU_BUTTON"] = Load2DTGA("Assets//Menu//button.tga", false);
+	textureID["POPUP"] = Load2DTGA("Assets//textbox.tga", false);
 
 	cout << "Mesh Loaded." << endl << endl;
 }

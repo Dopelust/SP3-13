@@ -90,6 +90,8 @@ void MinScene::Init()
 	maxShadowCoord.Set(48, 24, 48);
 	showMap = false;
 
+	InitTextStuff();
+
 	/*for (unsigned i = 0; i < 128; ++i)
 	{
 		unsigned id = rand() % NumEntities;
@@ -1003,6 +1005,7 @@ void MinScene::Update(double dt)
 
 		return;
 	}
+	LocationTriggers(dt);
 
 	ObtainBlockList();
 	PartitionCollision();
@@ -1780,7 +1783,11 @@ void MinScene::Render()
 	if (showMap)
 		RenderMap();
 	else
+	{
 		Render2D();
+		if (showPopUp == true)
+			RenderPopUpBox();
+	}
 
 	glUniform1f(m_parameters[U_ALPHA], screenFade);
 	meshList["QUAD"]->textureID = NULL;
