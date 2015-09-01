@@ -177,6 +177,17 @@ void SceneBase::InitMesh()
 
 	meshList["WATER"] = MeshBuilder::GenerateSpriteAnimation("Water", 4, 4, 1, 1);
 	meshList["WATER"]->textureID = LoadTGA("Assets//water.tga", false);
+
+
+	//Laz
+	textureID["SPRITE_HEART"] = Load2DTGA("Assets//Sprites//Heart.tga",false);
+	textureID["SPRITE_SPRINT"] = Load2DTGA("Assets//Sprites//Sprint.tga",false);
+	textureID["SPRITE_HOURGLASS"] = Load2DTGA("Assets//Sprites//Hourglass.tga",false);
+	textureID["SPRITE_EXP"] = Load2DTGA("Assets//Sprites//EXP.tga",false);
+	textureID["SPRITE_BOW"] = Load2DTGA("Assets//Sprites//Bow.tga");
+	textureID["SPRITE_KNIFE"] = Load2DTGA("Assets//Sprites//dagger.tga");
+	textureID["SPRITE_FOOD"] = Load2DTGA("Assets//Sprites//Food.tga");
+
 	SpriteAnimation* sa = dynamic_cast<SpriteAnimation*>(meshList["WATER"]);
 	if (sa)
 	{

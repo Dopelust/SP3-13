@@ -35,6 +35,7 @@ void Player::Init()
 	apparentHealth = trueHealth = 100;
 	camera.Init(Vector3(position.x, position.y + eyeLevel, position.z), hOrientation, vOrientation);
 	SprintBar = MaxSprintTime = 4;
+	SprintCounter = ((SprintBar/MaxSprintTime) * 100);
 	Sprint = true;
 	run = false;
 	Horse = 1;
@@ -394,7 +395,7 @@ void Player::Update(double dt, bool RestrictMovement)
 	{
 		myKeys[i] = false;
 	}
-
+	SprintCounter = ((SprintBar/MaxSprintTime) * 100);
 	WorldBorderCheck();
 }
 

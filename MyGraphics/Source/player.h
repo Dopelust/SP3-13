@@ -52,6 +52,8 @@ public:
 
 	float SprintBar;
 	float MaxSprintTime;
+	//Laz
+	int SprintCounter;
 	bool Sprint;
 	bool run;
 	float Horse;

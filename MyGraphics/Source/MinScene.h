@@ -124,6 +124,7 @@ private:
 
 	float ZoneBar;
 	float MaxZoneTime;
+	int ZoneCounter;
 	bool InTheZone;
 
 	bool showMap;

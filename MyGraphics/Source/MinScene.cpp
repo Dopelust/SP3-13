@@ -234,6 +234,8 @@ void MinScene::Init()
 			modelStack.PopMatrix();
 		}
 	}
+	//Laz
+	ZoneCounter = (ZoneBar/MaxZoneTime) * 100;
 }
 
 void MinScene::UnleashTheHounds()
@@ -1417,7 +1419,8 @@ void MinScene::Update(double dt)
 	}
 	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
 		bGButtonPressed = false;
-
+	//Laz
+	ZoneCounter = (ZoneBar/MaxZoneTime)*100;
 	Application::ResetCursorPos();
 }
 Entity* MinScene::FetchEntity(unsigned id)
@@ -2599,6 +2602,19 @@ void MinScene::Render2D()
 			modelStack.PopMatrix();
 		}
 
+		//Laz
+		meshList["QUAD"]->textureID = textureID["SPRITE_KNIFE"]; 
+		RenderInstance(meshList["QUAD"], 1,&MMat[0], false);
+		meshList["QUAD"]->textureID = NULL;
+
+		meshList["QUAD"]->textureID = textureID["SPRITE_BOW"];
+		RenderInstance(meshList["QUAD"], 1, &MMat[1], false);
+		meshList["QUAD"]->textureID = NULL;
+
+		meshList["QUAD"]->textureID = textureID["SPRITE_FOOD"];
+		RenderInstance(meshList["QUAD"], 1, &MMat[2], false);
+		meshList["QUAD"]->textureID = NULL;
+
 		meshList["QUAD"]->textureID = textureID["SELECTOR"];
 		RenderInstance(meshList["QUAD"], CInventory::InventorySize, &MMat[0], false);
 		meshList["QUAD"]->textureID = NULL;
@@ -2634,6 +2650,8 @@ void MinScene::Render2D()
 			modelStack.PopMatrix();
 		}
 
+
+
 		meshList["QUAD"]->textureID = textureID["SLOT"];
 		RenderInstance(meshList["QUAD"], MMat[Block::NUM_TYPES].size(), &MMat[Block::NUM_TYPES][0], false);
 		meshList["QUAD"]->textureID = NULL;
@@ -2657,56 +2675,152 @@ void MinScene::Render2D()
 	}
 	glUniform1i(m_parameters[U_TEXTURE_ROWS], 0);
 
-	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
-	modelStack.PushMatrix();
-	modelStack.Translate(8 + 200 * 0.5f, 200, 0);
-	modelStack.Scale(200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(8 + (ZoneBar/MaxZoneTime) * 200 * 0.5f, 200, 0);
-	modelStack.Scale((ZoneBar / MaxZoneTime) * 200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
-	modelStack.PopMatrix();
-
+		if(!player.noClip)
+	{
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
 
-	color.Set(1,1,0);
-	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
-
-	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
-	modelStack.PushMatrix();
-	modelStack.Translate(8 + 200 * 0.5f, 225, 0);
-	modelStack.Scale(200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(8 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f, 225, 0);
-	modelStack.Scale((player.SprintBar / player.MaxSprintTime) * 200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
-	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
-	
+	// LAZ HP BAR
 	color.Set(0.8f, 0, 0);
 	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
-
+		
 	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + 200 * 0.5f, 250, 0);
+	modelStack.Translate(40 + 200 * 0.5f, 90, 0);
 	modelStack.Scale(200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-	modelStack.Translate(8 + (player.health / 100) * 200 * 0.5f, 250, 0);
+	modelStack.Translate(40 + (player.health / 100) * 200 * 0.5f, 90, 0);
 	modelStack.Scale((player.health / 100) * 200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
 	meshList["QUAD"]->textureID = NULL;
 
+	color.Set(1,1,0);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+
+	//LAZ SPRINT BAR
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + 200 * 0.5f, 70, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f,70, 0);
+	modelStack.Scale((player.SprintBar / player.MaxSprintTime) * 200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+
+	//LAZ EXP BAR
+	color.Set(0,0.8f,0);
+	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + 200 * 0.5f, 30, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + 200 * 0.5f,30, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+	
+	
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+
+	//LAZ SLOW MO
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + 200 * 0.5f, 50, 0);
+	modelStack.Scale(200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(40 + (ZoneBar/MaxZoneTime) * 200 * 0.5f,50, 0);
+	modelStack.Scale((ZoneBar / MaxZoneTime) * 200, 16, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+	
+
+	//LAZ HP Counter
+	modelStack.PushMatrix();
+	modelStack.Translate(5 +  200 * 0.5f, 90 , 0);
+	modelStack.Scale(20);
+	ss.str("");
+	ss.precision(3);
+	ss << player.health << "/100"; 
+	RenderText(ss.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	//LAZ SPRINT COUNTER
+	modelStack.PushMatrix();
+	modelStack.Translate(20 + 200 * 0.5f,70, 0);
+	modelStack.Scale(20);
+	ss.str("");
+	ss.precision(3);
+	ss << player.SprintCounter<< "%"; 
+	RenderText(ss.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	//LAZ SLOWMO COUNTER
+	modelStack.PushMatrix();
+	modelStack.Translate(20 + 200 * 0.5f,50, 0);
+	modelStack.Scale(20);
+	ss.str("");
+	ss.precision(3);
+	ss << ZoneCounter<< "%"; 
+	RenderText(ss.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+	
+
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+
+	//Sprites
+	meshList["QUAD"]->textureID = textureID["SPRITE_HEART"];
+	modelStack.PushMatrix();
+	modelStack.Translate(30 , 90 ,0);
+	modelStack.Scale(20,15,0);
+	RenderMesh(meshList["QUAD"],false);
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+	
+	meshList["QUAD"]->textureID = textureID["SPRITE_HOURGLASS"];
+	modelStack.PushMatrix();
+	modelStack.Translate(30 , 50 ,0);
+	modelStack.Scale(20,15,0);
+	RenderMesh(meshList["QUAD"],false);
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+
+	meshList["QUAD"]->textureID = textureID["SPRITE_SPRINT"];
+	modelStack.PushMatrix();
+	modelStack.Translate(30 , 70 ,0);
+	modelStack.Scale(20,20,0);
+	RenderMesh(meshList["QUAD"],false);
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+
+	meshList["QUAD"]->textureID = textureID["SPRITE_EXP"];
+	modelStack.PushMatrix();
+	modelStack.Translate(20, 30 ,0);
+	modelStack.Scale(50,20,0);
+	RenderMesh(meshList["QUAD"],false);
+	modelStack.PopMatrix();
+	meshList["QUAD"]->textureID = NULL;
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+
+	
+	}
+
 }
 
 bool MinScene::Save(const char * filepath)
