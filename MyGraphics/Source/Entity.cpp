@@ -16,6 +16,7 @@ Entity::Entity() : position(0,0,0), velocity(0,0,0), lifetime(0.f), headOrientat
 
 Entity::~Entity()
 {
+	ClearArrows();
 }
 
 void Entity::Update(double dt)
@@ -87,6 +88,8 @@ void Entity::Knockback(Vector3 dir)
 	}
 
 	health -= dir.LengthSquared() * 0.01f;
+	if (health < 1)
+		health = 0;
 }
 
 bool Entity::IsActive()
@@ -169,6 +172,7 @@ void Entity::Update(double dt, bool RestrictMovement)
 	position += kbVelocity * dt;
 
 	RespondToCollision(this->collisionBlockList);
+	WorldBorderCheck();
 }
 
 void Entity::RespondToCollision(const vector<Block*>&object)
@@ -275,7 +279,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 
 			if (maxPlayer.z >= maxCube.z && minPlayer.z >= maxCube.z)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
+				if (velocity.y > -2.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -293,7 +297,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.z <= minCube.z && minPlayer.z <= minCube.z)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
+				if (velocity.y > -2.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -311,7 +315,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.x >= maxCube.x && minPlayer.x >= maxCube.x)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
+				if (velocity.y > -2.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{
@@ -329,7 +333,7 @@ void Entity::RespondToCollision(const vector<Block*>&object)
 			}
 			else if (maxPlayer.x <= minCube.x && minPlayer.x <= minCube.x)
 			{
-				if (velocity.y > -1.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
+				if (velocity.y > -2.f && !jump && maxPlayer.y >= maxCube.y - climbHeight && minPlayer.y >= maxCube.y - climbHeight)
 				{
 					if (position.y < maxCube.y)
 					{

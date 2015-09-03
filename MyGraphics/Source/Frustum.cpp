@@ -122,7 +122,7 @@ int FrustumG::boxInFrustum(Block &b) {
 	//		result = INTERSECT;
 	//}
 	//return(result);
-
+	return 0;
 }
 
 Plane::Plane(Vector3 &v1, Vector3 &v2, Vector3 &v3) {

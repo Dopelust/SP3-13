@@ -50,6 +50,9 @@ public:
 		NULL_STATE,
 		MENU,
 		PLAY,
+		VICTORY,
+		DEFEAT,
+		PAUSE,
 		CREDITS,
 	};
 
@@ -63,7 +66,7 @@ public:
 	void Update_Entity(double dt);
 
 	Entity* FetchEntity(unsigned id);
-	bool GenerateArrow(Entity& source, float strength);
+	bool GenerateArrow(Entity* source, float strength);
 	bool RemoveBlock(Block* block);
 	bool FetchBlock(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % NumBlocks, Block::blockType type = Block::DEFAULT);
 	bool FetchStair(Vector3 pos, bool checkForCollision = false, unsigned blockID = rand() % (NumBlocks - 3) + 3, int orientation = 0, int look = 0);
@@ -74,8 +77,11 @@ public:
 	void Render();
 	void Exit();
 
+	void InitGame();
+	void ExitGame();
+
 	int soundInit();
-	int soundUpdate(Player player);
+	int soundUpdate(Player& player);
 	int soundExit();
 
 	static Vector3 PositionToIndex(Vector3 pos);
@@ -104,6 +110,7 @@ private:
 	void RenderSkybox();
 	void Render2D();
 	void RenderMap();
+	void RenderStats();
 
 	unsigned nextUpdate;
 	float RenderDist;
@@ -125,9 +132,9 @@ private:
 
 	float ZoneBar;
 	float MaxZoneTime;
-	int ZoneCounter;
 	bool InTheZone;
 
+	bool showStats;
 	bool showMap;
 	Waypoint playerWaypoint;
 	vector<Waypoint> waypointList;
@@ -140,6 +147,10 @@ private:
 	MinState GameState;
 	MinState QueuedState;
 	
+	float creditsPosition;
+	vector<string> credits;
+	vector<string> instructions;
+
 	vector<Mtx44> WaterMMat;
 	float screenFade;
 
@@ -172,6 +183,8 @@ private:
 
 	string subtitle;
 	float subtitleTimer;
+
+	unsigned keyCount;
 };
 
 #endif

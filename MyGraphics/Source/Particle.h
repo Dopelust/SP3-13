@@ -14,7 +14,7 @@ public:
 	};
 
 	Particle();
-	~Particle();
+	virtual ~Particle();
 
 	Color color;
 	unsigned blockID;

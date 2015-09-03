@@ -35,6 +35,20 @@ CInventory::CInventory(void)
 
 CInventory::~CInventory(void)
 {
+	for (unsigned i = 0; i < InventorySize; ++i)
+	{
+		if (slot[i])
+		{
+			if (slot[i]->item)
+			{
+				delete slot[i]->item;
+				slot[i]->item = NULL;
+			}
+
+			delete slot[i];
+			slot[i] = NULL;
+		}
+	}
 }
 
 void CInventory::Update(double dt)
@@ -59,7 +73,14 @@ bool CInventory::Select(int select)
 {
 	if (select > 0 && select <= InventorySize)
 	{
-		selectedSlot = slot[select - 1];
+		if (selectedSlot != slot[select - 1])
+		{
+			selectedSlot = slot[select - 1];
+
+			if (selectedSlot->item)
+				selectedSlot->item->setCharge(0);
+		}
+
 		return true;
 	}
 	return false;
@@ -70,4 +91,7 @@ void CInventory::Scroll(int scroll)
 		selectedSlot = selectedSlot->next;
 	else if (scroll > 0)
 		selectedSlot = selectedSlot->prev;
+
+	if (selectedSlot->item)
+		selectedSlot->item->setCharge(0);
 }

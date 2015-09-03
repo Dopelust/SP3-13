@@ -105,7 +105,7 @@ void CFood::setCharge(float Charge)
 
 void CFood::Update(double dt)
 {
-	if (Application::IsMousePressed(1) && useCD >= 0.3f)
+	if (count > 0 && Application::IsMousePressed(1) && useCD >= 0.3f)
 	{
 		Rise(Charge, dt, 1);
 		BobY(dt);

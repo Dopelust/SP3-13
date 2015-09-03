@@ -40,10 +40,7 @@ public:
 	void Update(double dt, bool RestrictMovement);
 	void UpdateVelocity(double dt);
 
-	float apparentHealth;
-	float trueHealth;
-	float get_apparentHP(float upon);
-	float get_trueHP(float upon);
+	float maxHealth;
 	void recoverHealth(float recovery);
 	void reduceHealth(float reduction);
 
@@ -59,6 +56,23 @@ public:
 	float Horse;
 	float upDown;
 	bool Riding;
+
+	//Skill Tree
+	int skillPoint;
+	float damageCounter;
+	float speedCounter;
+	bool addHealth;
+	bool addSpeed;
+	bool addDamage;
+	bool addStamina;
+	void UpdateSkilltree(double dt);
+
+	//Exp LAZ
+	int Lv;
+	float maxEXP;
+	float currentEXP;
+	void updateEXP(double dt);
+	
 
 	CItem* getSelectedItem();
 };

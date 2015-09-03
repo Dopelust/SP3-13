@@ -95,13 +95,13 @@ void Camera3::Move(double dt)
 	double x, y;
 	Application::GetCursorPos(&x, &y);
 
-	float yaw = (float)((float)(double(Application::m_width)/2 - x) * (fov/70.f));
-	orientation += yaw/9.f;
+	float yaw = (float)((float)(double(Application::m_width)*0.5f - x));
+	orientation += yaw * 0.1f;
 
 	if (look <= 89 && look >= -89)
 	{
-		float pitch = (float)((float)(double(Application::m_height) / 2 - y) * (fov / 70.f));
-		look += pitch/9.f;
+		float pitch = (float)((float)(double(Application::m_height)*0.5f - y));
+		look += pitch * 0.1f;
 	}
 
 	if (look >= 89.f)

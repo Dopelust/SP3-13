@@ -20,7 +20,7 @@ class Living : public Entity
 {
 public:
 	Living();
-	~Living();
+	virtual ~Living();
 
 	float hitRate;
 	float hitTimer;
@@ -62,6 +62,9 @@ public:
 
 	bool turnLeft;
 
+	unsigned id;
+
+	unsigned getSubID();
 	void Update(double dt, bool RestrictMovement);
 	void Animate(double dt);
 };
@@ -92,6 +95,7 @@ public:
 	Arrow();
 	~Arrow();
 
+	Entity* source;
 	void Update(double dt, bool RestrictMovement);
 	void RespondToCollision(const vector<Block*>&object);
 

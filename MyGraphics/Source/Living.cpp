@@ -18,6 +18,11 @@ unsigned NPC::getSubID()
 	return id;
 }
 
+unsigned Knight::getSubID()
+{
+	return id;
+
+}
 extern ISoundEngine * engine;
 
 string NPC::getSpeech()
@@ -144,7 +149,7 @@ void Sentry::Animate(double dt)
 	headOrientation = sin(Math::DegreeToRadian(headBob)) * 20;
 }
 
-Knight::Knight() : originalOrientation(0), orient(0), orientTimer(0), turnLeft(false)
+Knight::Knight() : originalOrientation(0), orient(0), orientTimer(0), turnLeft(false), id(0)
 {
 }
 Knight::~Knight()
@@ -235,7 +240,7 @@ void Wolf::Update(double dt, bool RestrictMovement)
 			if (position.DistSquared(A->position) < 1.5f*1.5f)
 			{
 				velocity.y = 6;
-				A->Knockback(dir * 15);
+				A->Knockback(dir * 10);
 			}
 
 			Attack();
@@ -273,7 +278,7 @@ void Wolf::Update(double dt, bool RestrictMovement)
 
 	velocity.x += -velocity.x * 16 * dt;
 	velocity.z += -velocity.z * 16 * dt;
-	kbVelocity += -kbVelocity * 16 * dt;
+	kbVelocity += -kbVelocity * 12 * dt;
 
 	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
 	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
@@ -341,7 +346,9 @@ void Living::Update(double dt, bool RestrictMovement)
 
 		hOrientation += dt * dir.Cross(dest).y * 300;
 
-		dir.SphericalToCartesian(hOrientation, 0); dir *= 3;
+		dir.SphericalToCartesian(hOrientation, 0); dir *= 4; 
+		if (entityID = Entity::KNIGHT && getSubID() == 1)
+			dir *= 1.5f;
 		velocity.x = dir.x; velocity.z = dir.z;
 
 		if (velocity.y == 0 && hitTimer >= hitRate)
@@ -349,7 +356,7 @@ void Living::Update(double dt, bool RestrictMovement)
 			if (position.DistSquared(A->position) < 1.5f*1.5f)
 			{
 				velocity.y = 6;
-				A->Knockback(dir * 15);
+				A->Knockback(dir * 10);
 			}
 
 			hitTimer = 0.f;
@@ -363,7 +370,7 @@ void Living::Update(double dt, bool RestrictMovement)
 
 	velocity.x += -velocity.x * 16 * dt;
 	velocity.z += -velocity.z * 16 * dt;
-	kbVelocity += -kbVelocity * 16 * dt;
+	kbVelocity += -kbVelocity * 12 * dt;
 
 	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
 	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;
@@ -676,7 +683,7 @@ void Enemy::Update(double dt, bool RestrictMovement)
 
 	velocity.x += -velocity.x * 16 * dt;
 	velocity.z += -velocity.z * 16 * dt;
-	kbVelocity += -kbVelocity * 16 * dt;
+	kbVelocity += -kbVelocity * 12 * dt;
 
 	velocity.x = velocity.x > -0.1f && velocity.x < 0.1f ? 0 : velocity.x;
 	velocity.z = velocity.z > -0.1f && velocity.z < 0.1f ? 0 : velocity.z;

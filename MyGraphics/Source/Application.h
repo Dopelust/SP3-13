@@ -21,6 +21,7 @@ public:
 	static int m_width;
 	static int m_height;
 
+	static bool Close;
 	static bool IsKeyPressed(unsigned short key);
 	static bool IsMousePressed(unsigned short button);
 	bool getKeyboardUpdate();

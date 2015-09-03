@@ -25,6 +25,7 @@ void Player::Init()
 {
 	position.Set(0, 0, 0);
 	velocity.SetZero();
+	kbVelocity.SetZero();
 	hOrientation = 0;
 	vOrientation = 0;
 	stepSound = NULL;
@@ -32,13 +33,26 @@ void Player::Init()
 	eyeLevel = 1.62f;
 	collision.hitbox.Set(0.6f, 1.8f, 0.6f);
 	collision.centre.Set(0, collision.hitbox.y / 2, 0);
-	apparentHealth = trueHealth = 100;
+	maxHealth = health = 100;
 	camera.Init(Vector3(position.x, position.y + eyeLevel, position.z), hOrientation, vOrientation);
 	SprintBar = MaxSprintTime = 4;
 	SprintCounter = ((SprintBar/MaxSprintTime) * 100);
 	Sprint = true;
 	run = false;
 	Horse = 1;
+
+	/******************/
+    // Skill Tree
+	skillPoint = 0;
+	damageCounter = 1;
+	speedCounter = 2;
+	addHealth = false;
+	addStamina = false;
+	addDamage = false;
+	addSpeed = false;
+	maxEXP = 20;
+	currentEXP = 0;
+	Lv = 1;
 
 	for (unsigned i = 0; i < 255; ++i)
 	{
@@ -134,7 +148,7 @@ void Player::Update(double dt, bool RestrictMovement)
 	}
 	else
 	{
-		if (myKeys['C'] && myKeys['w'] && Sprint && run)
+		if (myKeys['C'] && myKeys['w'] && Sprint && run && !mount)
 		{
 			SprintBar -= dt;
 			WALK_SPEED = 5.612f;
@@ -361,7 +375,7 @@ void Player::Update(double dt, bool RestrictMovement)
 						sound->setVolume(0.75f);
 						sound->setIsPaused(false);
 					}
-					reduceHealth(-initialVel.y / 3); 
+					reduceHealth(-initialVel.y);
 				}
 				else if(stepSound)
 				{
@@ -386,33 +400,21 @@ void Player::Update(double dt, bool RestrictMovement)
 	hOrientation = camera.orientation;
 	vOrientation = camera.look;
 
-	if (trueHealth < apparentHealth)
-		Fall(apparentHealth, dt * 50, trueHealth);
-	else if (trueHealth > apparentHealth)
-		Rise(apparentHealth, dt * 50, trueHealth);
-
 	for (unsigned i = 0; i < 255; ++i)
 	{
 		myKeys[i] = false;
 	}
+
 	SprintCounter = ((SprintBar/MaxSprintTime) * 100);
 	WorldBorderCheck();
 }
 
-float Player::get_apparentHP(float upon)
-{
-	return (apparentHealth / 100)*upon;
-}
-float Player::get_trueHP(float upon)
-{
-	return (trueHealth / 100)*upon;
-}
 void Player::reduceHealth(float reduction)
 {
-	trueHealth -= reduction;
+	health -= reduction;
 
-	if (trueHealth < 1)
-		trueHealth = 0;
+	if (health < 1)
+		health = 0;
 }
 CItem * Player::getSelectedItem()
 {
@@ -420,8 +422,60 @@ CItem * Player::getSelectedItem()
 }
 void Player::recoverHealth(float recovery)
 {
-	trueHealth += recovery;
+	health += recovery;
 
-	if (trueHealth > 100)
-		trueHealth = 100;
+	if (health > maxHealth)
+		health = maxHealth;
+}
+
+void Player::updateEXP(double dt)
+{
+	currentEXP += 10;
+	if (currentEXP > maxEXP - 1)
+	{
+		//Get Skill points  
+		skillPoint++;
+		maxEXP += 20;
+		currentEXP = 0;
+		Lv++;
+	}
+}
+
+void Player::UpdateSkilltree(double dt)
+{
+	if (skillPoint > 0)
+	{
+		if (addHealth)
+		{
+			maxHealth += 10;
+			skillPoint--;
+			addHealth = false;
+		}
+
+		if (addSpeed)
+		{
+			speedCounter += 0.1f;
+
+			CKnife* K = dynamic_cast<CKnife*>(inventory.slot[0]->item);
+			K->attackRate = 1.f / speedCounter;
+
+			skillPoint--;
+			addSpeed = false;
+		}
+
+		if (addStamina)
+		{
+			MaxSprintTime++;
+			skillPoint--;
+			addStamina = false;
+		}
+
+		if (addDamage)
+		{
+			damageCounter += 0.2f;
+			skillPoint--;
+			addDamage = false;
+		}
+	}
+
 }

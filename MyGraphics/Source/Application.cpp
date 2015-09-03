@@ -19,6 +19,7 @@ float Application::textspace[255];
 
 int Application::mouseScroll = 0;
 
+bool Application::Close = false;
 int Application::m_width;
 int Application::m_height;
 StopWatch Application::m_timer;
@@ -241,7 +242,7 @@ void Application::Run()
 	ResetCursorPos();
 
 	m_timer.startTimer();    // Start timer to calculate how long it takes to render this frame
-	while (!glfwWindowShouldClose(m_window) && !IsKeyPressed(VK_BACK))
+	while (!glfwWindowShouldClose(m_window) && !Close)
 	{
 		getKeyboardUpdate();
 		scene->Update(m_timer.getElapsedTime());

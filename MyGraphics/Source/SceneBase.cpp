@@ -183,10 +183,9 @@ void SceneBase::InitMesh()
 
 
 	//Laz
-	textureID["SPRITE_HEART"] = Load2DTGA("Assets//Sprites//Heart.tga",false);
-	textureID["SPRITE_SPRINT"] = Load2DTGA("Assets//Sprites//Sprint.tga",false);
-	textureID["SPRITE_HOURGLASS"] = Load2DTGA("Assets//Sprites//Hourglass.tga",false);
-	textureID["SPRITE_EXP"] = Load2DTGA("Assets//Sprites//EXP.tga",false);
+	textureID["SPRITE_HEART"] = Load2DTGA("Assets//Sprites//Heart.tga",false, false);
+	textureID["SPRITE_SPRINT"] = Load2DTGA("Assets//Sprites//Sprint.tga",false, false);
+	textureID["SPRITE_HOURGLASS"] = Load2DTGA("Assets//Sprites//Hourglass.tga",false, false);
 	textureID["SPRITE_BOW"] = Load2DTGA("Assets//Sprites//Bow.tga", false, false);
 	textureID["SPRITE_KNIFE"] = Load2DTGA("Assets//Sprites//dagger.tga", false, false);
 	textureID["SPRITE_FOOD"] = Load2DTGA("Assets//Sprites//Food.tga", false, false);
@@ -220,15 +219,17 @@ void SceneBase::InitMesh()
 	textureID["SLOT"] = Load2DTGA("Assets//Slot.tga", false, false);
 	textureID["SELECTOR"] = Load2DTGA("Assets//Selector.tga", false);
 	textureID["SKYBOX"] = LoadTGA("Assets//Skybox.tga");
-	textureID["TEXT"] = Load2DTGA("Assets//Font//font.tga");
+	textureID["TEXT"] = Load2DTGA("Assets//Font//font.tga", false);
 	textureID["PLAYER1"] = Load2DTGA("Assets//Player//stannis.tga");
 	textureID["PLAYER2"] = Load2DTGA("Assets//Player//gregor.tga");
 	textureID["PLAYER3"] = Load2DTGA("Assets//Player//sand.tga");
 	textureID["PLAYER4"] = Load2DTGA("Assets//Player//silver.tga");
+	textureID["PLAYER5"] = Load2DTGA("Assets//Player//lion.tga");
 	textureID["WOLF"] = Load2DTGA("Assets//Wolf//wolf.tga");
 	textureID["SPIRITBAR"] = Load2DTGA("Assets//SpiritBar.tga", false);
 	textureID["MENU_BUTTON"] = Load2DTGA("Assets//Menu//button.tga", false);
 	textureID["POPUP"] = Load2DTGA("Assets//textbox.tga", false);
+	textureID["STATSMENU"] = Load2DTGA("Assets//stats.tga", false);
 
 	cout << "Mesh Loaded." << endl << endl;
 }
@@ -258,15 +259,6 @@ void SceneBase::UpdateLight(unsigned count)
 
 void SceneBase::Update(double dt)
 {
-	if (Application::IsKeyPressed('Z'))
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	}
-	else
-	{
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-	}
-
 	if (int(elapsedTime * 20) % 2)
 	{
 		fps = (float)(1.f / dt);
@@ -286,6 +278,9 @@ void SceneBase::Update(double dt)
 
 void SceneBase::RenderText(std::string text, Color color, Mesh* mesh)
 {
+	if (text.empty())
+		return;
+
 	glUniform1i(m_parameters[U_TEXTURE_ROWS], 16);
 
 	glUniform1i(m_parameters[U_TEXT_ENABLED], 1);

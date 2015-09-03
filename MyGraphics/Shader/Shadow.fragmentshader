@@ -189,7 +189,7 @@ void main(){
 
 	if (colorScaleEnabled)
 	{	
-		float average = (color.r + color.g + color.b) / 3.0;
+		float average = (color.r + color.g + color.b) * 0.33;
 		color = vec4(average, average, average, color.a);
 		color *= vec4(colorScale.x, colorScale.y, colorScale.z, fragmentAlpha);
 	}

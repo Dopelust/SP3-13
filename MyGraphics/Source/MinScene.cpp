@@ -35,6 +35,133 @@ MinScene::~MinScene()
 	
 }
 
+void MinScene::InitGame()
+{
+	if (!player.inventory.slot[1]->item)
+	{
+		CBow* Bow = new CBow();
+		Bow->mesh = meshList["BOW"];
+		player.inventory.slot[1]->item = Bow;
+	}
+	if (!player.inventory.slot[0]->item)
+	{
+		CKnife* Knife = new CKnife();
+		Knife->mesh = meshList["KNIFE"];
+		player.inventory.slot[0]->item = Knife;
+	}
+	if (!player.inventory.slot[2]->item)
+	{
+		CFood* Food = new CFood();
+		Food->mesh = meshList["MEAT"];
+		player.inventory.slot[2]->item = Food;
+	}
+	player.inventory.slot[2]->item->count = 0;
+
+	Load("Save//save1.txt");
+
+	player.Init();
+	camera = &player.camera;
+	player.position.Set(108, -4, 28);
+	player.hOrientation = 90;
+	camera->position = player.position; camera->position.y += player.eyeLevel; camera->orientation = player.hOrientation;
+
+	InitTextStuff();
+
+	for (unsigned i = 0; i < 128; ++i)
+	{
+		Wolf* entity = new Wolf();
+		entity->position.Set(rand() % 101 - 50, -7, rand() % 101 - 50);
+		entity->hOrientation = entity->newOrientation = rand() % 360;
+		entity->collision.hitbox.Set(0.7f, 0.8f, 0.7f);
+		entity->collision.centre.Set(0, 0.4f, 0);
+		entity->entityID = Entity::WOLF;
+		entity->health = 50;
+		worldLivingThings[Entity::WOLF].push_back(entity);
+	}
+
+	Key* entity = new Key();
+	entity->position.Set(-18.5f, -7, 116.5f);
+	entity->hOrientation = rand() % 360;
+	entity->collision.hitbox.Set(0.3f, 0.9f, 0.3f);
+	entity->collision.centre.Set(0, 0.45f, 0);
+	entity->entityID = Entity::KEY;
+	worldLivingThings[Entity::KEY].push_back(entity);
+
+	entity = new Key();
+	entity->position.Set(-105.5f, 17, 0.5f);
+	entity->hOrientation = rand() % 360;
+	entity->collision.hitbox.Set(0.3f, 0.9f, 0.3f);
+	entity->collision.centre.Set(0, 0.45f, 0);
+	entity->entityID = Entity::KEY;
+	worldLivingThings[Entity::KEY].push_back(entity);
+
+	entity = new Key();
+	entity->position.Set(-14.5f, 2, -102.5f);
+	entity->hOrientation = rand() % 360;
+	entity->collision.hitbox.Set(0.3f, 0.9f, 0.3f);
+	entity->collision.centre.Set(0, 0.45f, 0);
+	entity->entityID = Entity::KEY;
+	worldLivingThings[Entity::KEY].push_back(entity);
+
+	entity = new Key();
+	entity->position.Set(77.5f, -7, 38.5f);
+	entity->hOrientation = rand() % 360;
+	entity->collision.hitbox.Set(0.3f, 0.9f, 0.3f);
+	entity->collision.centre.Set(0, 0.45f, 0);
+	entity->entityID = Entity::KEY;
+	worldLivingThings[Entity::KEY].push_back(entity);
+
+	NPC* npc = new NPC();
+	npc->position.Set(111.5f, -4, 27.5f);
+	npc->hOrientation = -90;
+	npc->collision.hitbox.Set(0.6f, 1.9f, 0.6f);
+	npc->collision.centre.Set(0, 0.95f, 0);
+	npc->entityID = Entity::NPC;
+	npc->aggro = &player;
+	npc->id = 1;
+	worldLivingThings[Entity::NPC].push_back(npc);
+
+	Entity* h = new Entity();
+	h->position.Set(51,-8,5);
+	h->hOrientation = -90;
+	h->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
+	h->collision.centre.Set(0, 1.05f, 0);
+	h->entityID = Entity::HORSE;
+	worldLivingThings[Entity::HORSE].push_back(h);
+	h = new Entity();
+	h->position.Set(51, -8, 7);
+	h->hOrientation = -90;
+	h->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
+	h->collision.centre.Set(0, 1.05f, 0);
+	h->entityID = Entity::HORSE;
+	worldLivingThings[Entity::HORSE].push_back(h);
+	h = new Entity();
+	h->position.Set(51, -8, 9);
+	h->hOrientation = -90;
+	h->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
+	h->collision.centre.Set(0, 1.05f, 0);
+	h->entityID = Entity::HORSE;
+	worldLivingThings[Entity::HORSE].push_back(h);
+
+	Knight* K = new Knight();
+	K->position.Set(-18.5f, -8, 101.5f);
+	K->health = 300;
+	K->originalOrientation = K->hOrientation = 180;
+	K->collision.hitbox.Set(0.6f, 1.9f, 0.6f);
+	K->collision.centre.Set(0, 0.95f, 0);
+	K->entityID = Entity::KNIGHT;
+	K->id = 1;
+	worldLivingThings[Entity::KNIGHT].push_back(K);
+
+	UnleashTheHounds();
+
+	InTheZone = false;
+	ZoneBar = 0;
+	MaxZoneTime = 12;
+
+	keyCount = 0;
+}
+
 void MinScene::Init()
 {
 	Application::setWindowSize(1184, 666);
@@ -51,10 +178,6 @@ void MinScene::Init()
 	UpdateLight(1);
 
 	cout << "Light Initialized." << endl << endl;
-
-	player.Init();
-	player.position.y = 3;
-	camera = &player.camera;
 
 	selectedBlock = NULL;
 	blockInventory.Init();
@@ -73,69 +196,20 @@ void MinScene::Init()
 	}
 	cout << "Initializing Objects..." << endl;
 
-	Load("Save//save1.txt");
 	//LoadOutpost();
 	//LoadLionsDen();
 	//LoadWinterfell();
 	//LoadCastleBlack();
 	//GenerateWorld(Vector3(worldX, 1, worldZ));
 
+	InitGame();
 	cout << worldBlocks <<  " Objects Initialized." << endl << endl;
 
-	camera->position = player.position; camera->position.y += player.eyeLevel;
 	soundInit();
 
 	minShadowCoord.Set(-48, -24, -48);
 	maxShadowCoord.Set(48, 24, 48);
 	showMap = false;
-
-	InitTextStuff();
-
-	for (unsigned i = 0; i < 128; ++i)
-	{
-		//Entity* entity = new Entity();
-		//entity->position.Set(rand() % 101 - 50, 1, rand() % 101 - 50);
-		//entity->hOrientation = rand() % 360;
-		//entity->collision.hitbox.Set(1.4f, 2.1f, 1.4f);
-		//entity->collision.centre.Set(0, 1.05f, 0);
-		//entity->entityID = id;
-		//worldLivingThings[id].push_back(entity);
-
-		Wolf* entity = new Wolf();
-		entity->position.Set(rand() % 101 - 50, -7, rand() % 101 - 50);
-		entity->hOrientation = entity->newOrientation = rand() % 360;
-		entity->collision.hitbox.Set(0.7f, 0.8f, 0.7f);
-		entity->collision.centre.Set(0, 0.4f, 0);
-		entity->entityID = Entity::WOLF;
-		entity->health = 50;
-		worldLivingThings[Entity::WOLF].push_back(entity);
-	}
-
-	Key* entity = new Key();
-	entity->position.Set(-18.5f, -6, 116.5f);
-	entity->hOrientation = rand() % 360;
-	entity->collision.hitbox.Set(0.3f, 0.9f, 0.3f);
-	entity->collision.centre.Set(0, 0.45f, 0);
-	entity->entityID = Entity::KEY;
-	worldLivingThings[Entity::KEY].push_back(entity);
-
-	UnleashTheHounds();
-
-	InTheZone = false;
-	ZoneBar = 0;
-	MaxZoneTime = 12;
-
-	CBow* Bow = new CBow();
-	Bow->mesh = meshList["BOW"];
-	player.inventory.slot[1]->item = Bow;
-
-	CKnife* Knife = new CKnife();
-	Knife->mesh = meshList["KNIFE"];
-	player.inventory.slot[0]->item = Knife;
-
-	CFood* Food = new CFood();
-	Food->mesh = meshList["MEAT"];
-	player.inventory.slot[2]->item = Food;
 
 	Waypoint w;
 	w.point.Set(93, 0);
@@ -172,7 +246,7 @@ void MinScene::Init()
 	mB.canSelect = false;
 	menuButtons.push_back(mB);
 	mB.position.Set(48, Application::m_height - 236 - 64 * 2, 0);
-	mB.name = "Controls";
+	mB.name = "Instructions";
 	mB.hitbox = mB.scale = Vector3(Application::getTextWidth(mB.name) * 36, 32, 1);
 	mB.canSelect = true;
 	menuButtons.push_back(mB);
@@ -186,8 +260,14 @@ void MinScene::Init()
 	mB.hitbox = mB.scale = Vector3(Application::getTextWidth(mB.name) * 36, 32, 1);
 	mB.canSelect = true;
 	menuButtons.push_back(mB);
+	mB.position.Set(Application::m_width * 0.5f, Application::m_height * 0.87f, 0);
+	mB.name = "Key";
+	mB.textScale = mB.min_textScale = 96; mB.max_textScale = 112;
+	mB.hitbox = mB.scale = Vector3(96,96,96);
+	mB.canSelect = true;
+	menuButtons.push_back(mB);
 
-	string AoW = "Attack On Winterfell";
+	string AoW = "PoKeymon";
 	float accumulatedSpacing = 0;
 	mB.textScale = mB.min_textScale = 128; mB.max_textScale = 140;
 	for (unsigned i = 0; i < AoW.size(); ++i)
@@ -221,8 +301,30 @@ void MinScene::Init()
 			modelStack.PopMatrix();
 		}
 	}
-	//Laz
-	ZoneCounter = (ZoneBar/MaxZoneTime) * 100;
+
+	string line;
+	ifstream inputFile;
+	inputFile.open("Assets//Text//Credits.txt");
+
+	if (inputFile.is_open())
+	{
+		while (getline(inputFile, line))
+		{
+			credits.push_back(line);
+		}
+	}
+	inputFile.close();
+
+	inputFile.open("Assets//Text//Controls.txt");
+
+	if (inputFile.is_open())
+	{
+		while (getline(inputFile, line))
+		{
+			instructions.push_back(line);
+		}
+	}
+	inputFile.close();
 }
 
 void MinScene::UnleashTheHounds()
@@ -255,13 +357,13 @@ void MinScene::UnleashTheHounds()
 					case 18:
 					{
 						Stair* s = dynamic_cast<Stair*>(worldBlockList[x][y][z]);
-						//Knight* entity = new Knight();
-						//entity->position = s->position + s->collision.centre;
-						//entity->originalOrientation = entity->hOrientation = s->orientation;
-						//entity->collision.hitbox.Set(0.6f, 1.9f, 0.6f);
-						//entity->collision.centre.Set(0, 0.95f, 0);
-						//entity->entityID = Entity::KNIGHT;
-						//worldLivingThings[Entity::KNIGHT].push_back(entity);
+						Knight* entity = new Knight();
+						entity->position = s->position + s->collision.centre;
+						entity->originalOrientation = entity->hOrientation = s->orientation;
+						entity->collision.hitbox.Set(0.6f, 1.9f, 0.6f);
+						entity->collision.centre.Set(0, 0.95f, 0);
+						entity->entityID = Entity::KNIGHT;
+						worldLivingThings[Entity::KNIGHT].push_back(entity);
 
 						RemoveBlock(worldBlockList[x][y][z]);
 						break;
@@ -276,7 +378,6 @@ void MinScene::UnleashTheHounds()
 						entity->collision.centre.Set(0, 0.95f, 0);
 						entity->entityID = Entity::NPC;
 						entity->aggro = &player;
-						entity->id = rand() % 2;
 						worldLivingThings[Entity::NPC].push_back(entity);
 
 						RemoveBlock(worldBlockList[x][y][z]);
@@ -681,6 +782,8 @@ void MinScene::Update_LevelEditor(double dt)
 				float pX = view.Dot(Vector3(1, 0, 0));
 				float nX = view.Dot(Vector3(-1, 0, 0));
 
+				view.Set(1 / view.x, 1 / view.y, 1 / view.z);
+
 				int look = 0;
 				if (face == 3)
 					look = 90;
@@ -773,7 +876,7 @@ void MinScene::Update_Game(double dt)
 			{
 			case CItem::BOW:
 			{
-				GenerateArrow(player, (player.inventory.selectedSlot->item->getCharge() - 0.4f) * 64);
+				GenerateArrow(&player, (player.inventory.selectedSlot->item->getCharge() - 0.4f) * 64);
 				break;
 			}
 			case CItem::KNIFE:
@@ -781,7 +884,7 @@ void MinScene::Update_Game(double dt)
 				if (selectedEntity && selectedEntity->IsLiving())
 				{
 					selectedEntity->aggro = &player;
-					selectedEntity->Knockback((selectedEntity->position - camera->position) * 10);
+					selectedEntity->Knockback((selectedEntity->position - camera->position) * 10 * player.damageCounter);
 
 					for (unsigned l = 0; l < 5; ++l)
 						SpawnParticle(selectedEntity->position + selectedEntity->collision.centre, 15);
@@ -794,20 +897,16 @@ void MinScene::Update_Game(double dt)
 						if (playerDir.Dot(enemyDir) > 0.5f)
 							selectedEntity->health = 0;
 					}
-
-					if (selectedEntity->health <= 0)
-					{
-						//Add EXP and Zone
-					}
 				}
 				break;
 			}
 			case CItem::FOOD:
 			{
-				if (player.health < 100)
-					player.health+=5;
-				player.health = player.health > 100 ? 100 : player.health;
+				if (player.health < player.maxHealth)
+					player.health += 15;
+				player.health = player.health > player.maxHealth ? player.maxHealth : player.health;
 
+				player.getSelectedItem()->count--;
 				break;
 			}
 			}
@@ -845,28 +944,73 @@ void MinScene::Update_Game(double dt)
 }
 void MinScene::Update(double dt)
 {
+	static bool bESCButtonPressed = false;
+	if (!bESCButtonPressed && Application::IsKeyPressed(VK_ESCAPE))
+	{
+		bESCButtonPressed = true;
+
+		if (showMap)
+		{
+			showMap = false;
+			Application::HideCursor(true);
+		}
+		else if (showStats)
+		{
+			showStats = false;
+			Application::HideCursor(true);
+		}
+		else if (GameState == PLAY && !InTheZone)
+			GameState = PAUSE;
+		else
+			bESCButtonPressed = false;
+	}
+	else if (bESCButtonPressed && !Application::IsKeyPressed(VK_ESCAPE))
+		bESCButtonPressed = false;
+
 	if (QueuedState)
 	{
 		Rise(screenFade, dt, 1);
 
-		if (menuSound)
-			menuSound->setVolume(1 - screenFade);
-
-		if (screenFade == 1)
+		if (QueuedState == PLAY)
 		{
 			if (menuSound)
-				engine->removeSoundSource(menuSound->getSoundSource());
+				menuSound->setVolume(1 - screenFade);
+		}
 
-			GameState = QueuedState;
-
-			switch (GameState)
+		if (screenFade == 1 || QueuedState == VICTORY || QueuedState == DEFEAT)
+		{
+			switch (QueuedState)
 			{
+			case MENU:
+				if (GameState == VICTORY || GameState == DEFEAT)
+				{
+					ExitGame();
+					InitGame();
+				}
+				camera = &menuCamera;
+				lights[0].position.Set(camera->position.x, 4, camera->position.z);
+				Application::HideCursor(false);
+				break;
 			case PLAY:
 				camera = &player.camera;
 				Application::HideCursor(true);
+
+				if (menuSound)
+					engine->removeSoundSource(menuSound->getSoundSource());
+
+				if (menuButtons[0].selected)
+				{
+					ExitGame();
+					InitGame();
+				}
+				Application::ResetCursorPos();
+				break;
+			case CREDITS:
+				creditsPosition = 0;
+			default:
 				break;
 			}
-			
+			GameState = QueuedState;
 			QueuedState = NULL_STATE;
 		}
 	}
@@ -916,8 +1060,12 @@ void MinScene::Update(double dt)
 
 					if (Application::IsMousePressed(0))
 					{
-						if (menuButtons[i].name == "Play")
+						if (menuButtons[i].name == "Play" || menuButtons[i].name == "Continue")
 							QueuedState = PLAY;
+						else if (menuButtons[i].name == "Credits")
+							QueuedState = CREDITS;
+						else if (menuButtons[i].name == "Exit")
+							Application::Close = true;
 					}
 
 				}
@@ -937,32 +1085,108 @@ void MinScene::Update(double dt)
 		Update_Entity(dt);
 		return;
 	}
-
-	static bool bMButtonPressed = false;
-
-	if (!bMButtonPressed && Application::IsKeyPressed('M'))
+	else if (GameState == CREDITS)
 	{
-		bMButtonPressed = true;
+		if (Application::IsKeyPressed(VK_SPACE))
+			dt *= 8;
 
-		if (showMap)
+		creditsPosition += dt * 25;
+
+		if (creditsPosition > 3400)
+			QueuedState = MENU;
+
+		if (!bESCButtonPressed && Application::IsKeyPressed(VK_ESCAPE))
 		{
-			Application::HideCursor(true);
-			minShadowCoord.Set(-48, -24, -48);
-			maxShadowCoord.Set(48, 24, 48);
-			showMap = false;
+			QueuedState = MENU;
+			bESCButtonPressed = true;
 		}
-		else
-		{
-			Application::HideCursor(false);
-			Application::ResetCursorPos();
-			lights[0].position.Set(0, 4, 0);
-			minShadowCoord.Set(-128, -24, -128);
-			maxShadowCoord.Set(128, 24, 128);
-			showMap = true;
-		}
+		else if (bESCButtonPressed && !Application::IsKeyPressed(VK_ESCAPE))
+			bESCButtonPressed = false;
+
+		return;
 	}
-	else if (bMButtonPressed && !Application::IsKeyPressed('M'))
-		bMButtonPressed = false;
+	else if (GameState == VICTORY || GameState == DEFEAT)
+	{
+		if (!bESCButtonPressed && Application::IsKeyPressed(VK_ESCAPE))
+		{
+			QueuedState = MENU;
+			bESCButtonPressed = true;
+			menuButtons[1].canSelect = false;
+		}
+		else if (bESCButtonPressed && !Application::IsKeyPressed(VK_ESCAPE))
+			bESCButtonPressed = false;
+
+		return;
+	}
+	else if (GameState == PAUSE)
+	{
+		if (!bESCButtonPressed && Application::IsKeyPressed(VK_ESCAPE))
+		{
+			Application::ResetCursorPos();
+			GameState = PLAY;
+			bESCButtonPressed = true;
+		}
+		else if (bESCButtonPressed && !Application::IsKeyPressed(VK_ESCAPE))
+			bESCButtonPressed = false;
+
+		if (Application::IsKeyPressed(VK_RETURN))
+		{
+			QueuedState = MENU;
+			menuButtons[1].canSelect = true;
+		}
+
+		return;
+	}
+
+	if (!InTheZone)
+	{
+		static bool bMButtonPressed = false;
+
+		if (!bMButtonPressed && Application::IsKeyPressed('M'))
+		{
+			bMButtonPressed = true;
+
+			if (showMap)
+			{
+				Application::HideCursor(true);
+				minShadowCoord.Set(-48, -24, -48);
+				maxShadowCoord.Set(48, 24, 48);
+				showMap = false;
+			}
+			else if (!showStats)
+			{
+				Application::HideCursor(false);
+				Application::ResetCursorPos();
+				lights[0].position.Set(0, 4, 0);
+				minShadowCoord.Set(-128, -24, -128);
+				maxShadowCoord.Set(128, 24, 128);
+				showMap = true;
+			}
+		}
+		else if (bMButtonPressed && !Application::IsKeyPressed('M'))
+			bMButtonPressed = false;
+
+		static bool bPButtonPressed = false;
+
+		if (!bPButtonPressed && Application::IsKeyPressed('P'))
+		{
+			bPButtonPressed = true;
+
+			if (showStats)
+			{
+				Application::HideCursor(true);
+				showStats = false;
+			}
+			else if (!showMap)
+			{
+				Application::HideCursor(false);
+				Application::ResetCursorPos();
+				showStats = true;
+			}
+		}
+		else if (bPButtonPressed && !Application::IsKeyPressed('P'))
+			bPButtonPressed = false;
+	}
 
 	if (showMap)
 	{
@@ -985,6 +1209,51 @@ void MinScene::Update(double dt)
 		if (x < thePoint.x + 16 && x > thePoint.x - 16 && y < thePoint.y + 16 && y > thePoint.y - 16)
 			playerWaypoint.selected = true;
 
+		return;
+	}
+	else if (showStats)
+	{
+		double x = 0;
+		double y = 0;
+		Application::GetCursorPos(&x, &y);
+
+		y = Application::m_height - y;
+
+		static bool bLMouseButtonPressed = false;
+
+		if (!bLMouseButtonPressed && Application::IsMousePressed(0))
+		{
+			if (x > Application::m_width * 0.65f && x < Application::m_width * 0.735f &&
+				y < Application::m_height * 0.634f && y > Application::m_height * 0.51f)			//Top stat box
+			{
+				//DMG STAT GOES HERE
+				player.addDamage = true;
+			}
+			else if (x > Application::m_width * 0.65f && x < Application::m_width * 0.735f &&
+				y < Application::m_height * 0.46f && y > Application::m_height * 0.35f)
+			{
+				//MOVEMENT SPEED STAT GOES HERE
+				player.addSpeed = true;
+			}
+			else if (x > Application::m_width * 0.65f && x < Application::m_width * 0.735f &&
+				y < Application::m_height * 0.3f && y > Application::m_height * 0.19f)
+			{
+				//STAMINA STAT GOES HERE
+				player.addStamina = true;
+			}
+			else if (x > Application::m_width * 0.65f && x < Application::m_width * 0.735f &&
+				y < Application::m_height * 0.14f && y > Application::m_height * 0.03f)
+			{
+				//HEALTH STAT GOES HERE
+				player.addHealth = true;
+			}
+			bLMouseButtonPressed = true;
+		}
+		else if (bLMouseButtonPressed && !Application::IsMousePressed(0))
+		{
+			bLMouseButtonPressed = false;
+		}
+		player.UpdateSkilltree(dt);
 		return;
 	}
 	LocationTriggers(dt);
@@ -1022,16 +1291,16 @@ void MinScene::Update(double dt)
 	else
 		glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 
-	static bool bNButtonPressed = false;
+	//static bool bNButtonPressed = false;
 
-	if (!bNButtonPressed && Application::IsKeyPressed(VK_TAB))
-	{
-		if (!InTheZone)
-			player.noClip = player.noClip ? false : true;
-		bNButtonPressed = true;
-	}
-	else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
-		bNButtonPressed = false;
+	//if (!bNButtonPressed && Application::IsKeyPressed(VK_TAB))
+	//{
+	//	if (!InTheZone)
+	//		player.noClip = player.noClip ? false : true;
+	//	bNButtonPressed = true;
+	//}
+	//else if (bNButtonPressed && !Application::IsKeyPressed(VK_TAB))
+	//	bNButtonPressed = false;
 
 	Update_Entity(dt);
 
@@ -1110,9 +1379,27 @@ void MinScene::Update(double dt)
 				}
 				break;
 			}
-			case Entity::DROP: case Entity::KEY:
+			case Entity::DROP: 
+			{
+				player.inventory.slot[2]->item->count++;
+				selectedEntity->SetActive(false);
+				break;
+			}
+			case Entity::KEY:
 			{
 				selectedEntity->SetActive(false);
+
+				for (unsigned i = 0; i < LivingThings[selectedEntity->entityID].size(); ++i)
+				{
+					if (LivingThings[selectedEntity->entityID][i] == selectedEntity)
+						LivingThings[selectedEntity->entityID].erase(LivingThings[selectedEntity->entityID].begin() + i);
+				}
+
+				keyCount++;
+
+				if (keyCount >= 4)
+					QueuedState = VICTORY;
+				
 				break;
 			}
 			case Entity::NPC:
@@ -1149,6 +1436,8 @@ void MinScene::Update(double dt)
 
 	if (player.mount)
 		tooltip = "[E] Dismount";
+	if (QueuedState == VICTORY)
+		tooltip.clear();
 
 	if (player.noClip)
 		Update_LevelEditor(dt);
@@ -1190,15 +1479,17 @@ void MinScene::Update(double dt)
 
 	static bool bGButtonPressed = false;
 
-	if (!bGButtonPressed && Application::IsKeyPressed('G'))
-	{
-		Save("Save//save1.txt"); Application::m_timer.getElapsedTime();
-		bGButtonPressed = true;
-	}
-	else if (bGButtonPressed && !Application::IsKeyPressed('G'))
-		bGButtonPressed = false;
-	//Laz
-	ZoneCounter = (ZoneBar/MaxZoneTime)*100;
+	//if (!bGButtonPressed && Application::IsKeyPressed('G'))
+	//{
+	//	Save("Save//save1.txt"); Application::m_timer.getElapsedTime();
+	//	bGButtonPressed = true;
+	//}
+	//else if (bGButtonPressed && !Application::IsKeyPressed('G'))
+	//	bGButtonPressed = false;
+
+	if (player.health <= 0)
+		QueuedState = DEFEAT;
+
 	Application::ResetCursorPos();
 }
 
@@ -1218,6 +1509,7 @@ void MinScene::Update_Entity(double dt)
 
 			if (j == Entity::ARROW) //If Arrows,
 			{
+				Arrow* theArrow = dynamic_cast<Arrow*>(LivingThings[j][i]);
 				Block arrow(LivingThings[j][i]->position, LivingThings[j][i]->collision.centre, LivingThings[j][i]->collision.hitbox);
 
 				if (LivingThings[j][i]->IsDead())
@@ -1234,7 +1526,7 @@ void MinScene::Update_Entity(double dt)
 					continue;
 				}
 
-				if (Block::checkCollision(arrow, Player)) //If arrow collide with entity
+				if (theArrow->source != &player && Block::checkCollision(arrow, Player)) //If arrow collide with entity
 				{
 					player.Knockback(LivingThings[j][i]->velocity); //Knockback entity
 					for (unsigned l = 0; l < 10; ++l) //Generate Blood
@@ -1253,6 +1545,9 @@ void MinScene::Update_Entity(double dt)
 
 					for (unsigned k = 0; k < count2; ++k)
 					{
+						if (theArrow->source == LivingThings[j2][k])
+							continue;
+
 						Block NPC(LivingThings[j2][k]->position, LivingThings[j2][k]->collision.centre, LivingThings[j2][k]->collision.hitbox);
 
 						if (Block::checkCollision(arrow, NPC)) //If arrow collide with entity
@@ -1262,10 +1557,9 @@ void MinScene::Update_Entity(double dt)
 							for (unsigned l = 0; l < 10; ++l) //Generate Blood
 								SpawnParticle(LivingThings[j][i]->position, 15);
 
-							Arrow* StuckedArrow = dynamic_cast<Arrow*>(LivingThings[j][i]); //Stuck arrow to entity
-							StuckedArrow->relativeOrientation = LivingThings[j2][k]->hOrientation;
-							StuckedArrow->relativePosition = LivingThings[j][i]->position - LivingThings[j2][k]->position;
-							LivingThings[j2][k]->StuckedArrows.push_back(StuckedArrow); //Add arrow to internal list
+							theArrow->relativeOrientation = LivingThings[j2][k]->hOrientation;
+							theArrow->relativePosition = LivingThings[j][i]->position - LivingThings[j2][k]->position;
+							LivingThings[j2][k]->StuckedArrows.push_back(theArrow); //Add arrow to internal list
 							LivingThings[j][i]->SetDead(true);
 
 							unsigned count3 = worldLivingThings[j].size();
@@ -1365,7 +1659,7 @@ void MinScene::Update_Entity(double dt)
 					}
 					else if (j == Entity::SENTRY && LivingThings[j][i]->canAttack())
 					{
-						GenerateArrow(*LivingThings[j][i], 25);
+						GenerateArrow(LivingThings[j][i], 35);
 						LivingThings[j][i]->Attack();
 					}
 				}
@@ -1383,13 +1677,21 @@ void MinScene::Update_Entity(double dt)
 		{
 			if (LivingThings[j][i]->health <= 0) //If the entity dies
 			{
+				player.updateEXP(dt);
+
+				if (!InTheZone)
+				{
+					ZoneBar++;
+					ZoneBar = ZoneBar > MaxZoneTime ? MaxZoneTime : ZoneBar;
+				}
+
 				for (unsigned l = 0; l < 10; ++l)
 					SpawnParticle(LivingThings[j][i]->position, 15); //Generate more blood
 
 				LivingThings[j][i]->ClearArrows();
 				LivingThings[j][i]->SetActive(false);
 
-				for (unsigned l = 0; l < 10; l++)
+				for (unsigned l = 0; l < 6; l++)
 				{
 					Entity* meat = FetchEntity(Entity::DROP);
 					meat->position = LivingThings[j][i]->position;
@@ -1469,10 +1771,10 @@ Entity* MinScene::FetchEntity(unsigned id)
 	//	return LivingThing;
 	//}
 }
-bool MinScene::GenerateArrow(Entity & source, float strength)
+bool MinScene::GenerateArrow(Entity* source, float strength)
 {
 	char* soundFileLocation[3] = { "Assets/Media/Weapons/shoot1.mp3", "Assets/Media/Weapons/shoot2.mp3" , "Assets/Media/Weapons/shoot3.mp3" };
-	ISound* sound = engine->play3D(soundFileLocation[rand() % 3], vec3df(source.position.x, source.position.y + 1.62f, source.position.z), false, true);
+	ISound* sound = engine->play3D(soundFileLocation[rand() % 3], vec3df(source->position.x, source->position.y + 1.62f, source->position.z), false, true);
 	if (sound)
 	{
 		sound->setVolume(0.2f);
@@ -1480,15 +1782,16 @@ bool MinScene::GenerateArrow(Entity & source, float strength)
 	}
 
 	Arrow* arrow = new Arrow();
-	arrow->position = source.position; arrow->position.y += player.eyeLevel;
-	arrow->velocity.SphericalToCartesian(source.hOrientation, source.vOrientation); arrow->position += arrow->velocity * 0.75f;
+	arrow->position = source->position; arrow->position.y += player.eyeLevel; 
+	arrow->velocity.SphericalToCartesian(source->hOrientation, source->vOrientation); arrow->position -= arrow->velocity;
 	arrow->velocity *= strength;
-	arrow->hOrientation = source.hOrientation;
-	arrow->vOrientation = source.vOrientation;
+	arrow->hOrientation = source->hOrientation;
+	arrow->vOrientation = source->vOrientation;
 	arrow->climbHeight = 0.f;
 	arrow->entityID = Entity::ARROW;
 	arrow->collision.hitbox.Set(0.4f, 0.4f, 0.4f);
 	arrow->collision.centre.Set(0, 0, 0);
+	arrow->source = source;
 
 	LivingThings[Entity::ARROW].push_back(arrow);
 	worldLivingThings[Entity::ARROW].push_back(arrow);
@@ -1672,6 +1975,7 @@ void MinScene::Render()
 		modelStack.PopMatrix();
 		meshList["QUAD"]->textureID = NULL;
 
+		meshList["QUAD"]->textureID = textureID["SPRITE_KEY"];
 		for (unsigned i = 0; i < menuTitle.size(); ++i)
 		{
 			modelStack.PushMatrix();
@@ -1690,18 +1994,27 @@ void MinScene::Render()
 
 		for (unsigned i = 0; i < menuButtons.size(); ++i)
 		{
-			modelStack.PushMatrix();
-			modelStack.Translate(-2, -2, 0);
-			modelStack.Translate(16, menuButtons[i].position.y, 0);
-			modelStack.Scale(menuButtons[i].min_textScale);
-			RenderText(">", Color(0, 0, 0));
-			modelStack.PopMatrix();
+			if (menuButtons[i].name != "Key")
+			{
+				modelStack.PushMatrix();
+				modelStack.Translate(-2, -2, 0);
+				modelStack.Translate(16, menuButtons[i].position.y, 0);
+				modelStack.Scale(menuButtons[i].min_textScale);
+				RenderText(">", Color(0, 0, 0));
+				modelStack.PopMatrix();
+			}
 
 			modelStack.PushMatrix();
 			modelStack.Translate(-2, -2, 0);
 			modelStack.Translate(menuButtons[i].position);
 			modelStack.Scale(menuButtons[i].textScale);
-			RenderText(menuButtons[i].name, Color(0,0,0));
+			if (menuButtons[i].name == "Key")
+			{
+				modelStack.Translate(0.5f, 0, 0);
+				RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+			}
+			else
+				RenderText(menuButtons[i].name, Color(0,0,0));
 			modelStack.PopMatrix();
 
 			Color color;
@@ -1712,23 +2025,183 @@ void MinScene::Render()
 			else
 				color.Set(0.3f, 0.3f, 0.3f);
 
-			modelStack.PushMatrix();
-			modelStack.Translate(16, menuButtons[i].position.y, 0);
-			modelStack.Scale(menuButtons[i].min_textScale);
-			RenderText(">", color);
-			modelStack.PopMatrix();
+			if (menuButtons[i].name != "Key")
+			{
+				modelStack.PushMatrix();
+				modelStack.Translate(16, menuButtons[i].position.y, 0);
+				modelStack.Scale(menuButtons[i].min_textScale);
+				RenderText(">", color);
+				modelStack.PopMatrix();
+			}
 
 			modelStack.PushMatrix();
 			modelStack.Translate(menuButtons[i].position);
 			modelStack.Scale(menuButtons[i].textScale);
-			RenderText(menuButtons[i].name, color);
+			if (menuButtons[i].name == "Key")
+			{
+				modelStack.Translate(0.5f, 0, 0);
+				RenderMesh(meshList["QUAD"], false);
+			}
+			else
+				RenderText(menuButtons[i].name, color);
+			modelStack.PopMatrix();
+		}
+		
+		glUniform1f(m_parameters[U_ALPHA], (menuButtons[2].textScale - menuButtons[2].min_textScale) / (menuButtons[2].max_textScale - menuButtons[2].min_textScale));
+		for (int i = 0; i < instructions.size(); ++i)
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(-2,-2, 0);
+			modelStack.Translate(Application::m_width * 0.35f, Application::m_height * 0.67f + (-24 * i), 0);
+			modelStack.Scale(24);
+			RenderText(instructions[i], Color(0,0,0));
+
+			modelStack.PopMatrix();
+			modelStack.PushMatrix();
+			modelStack.Translate(Application::m_width * 0.35f, Application::m_height * 0.67f + (-24 * i), 0);
+			modelStack.Scale(24);
+			RenderText(instructions[i], Color(1, 1, 1));
 			modelStack.PopMatrix();
 		}
 
 		glUniform1f(m_parameters[U_ALPHA], screenFade);
 		meshList["QUAD"]->textureID = NULL;
 		modelStack.PushMatrix();
-		modelStack.Scale(300000);
+		modelStack.Scale(5000);
+		RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+		modelStack.PopMatrix();
+		glUniform1f(m_parameters[U_ALPHA], 1);
+
+		glEnable(GL_DEPTH_TEST);
+		return;
+	}
+	else if (GameState == CREDITS)
+	{
+		projection.SetToOrtho(0, Application::m_width, 0, Application::m_height, -80, 80);
+		projectionStack.LoadMatrix(projection);
+		glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
+
+		meshList["QUAD"]->textureID = NULL;
+		modelStack.PushMatrix();
+		modelStack.Scale(5000);
+		RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(Application::m_width - 8, 8, 0);
+		modelStack.Scale(12);
+		modelStack.Translate(-Application::getTextWidth("[SPACE] : Fast Forward l [ESC] : Return To Main Menu"), 0, 0);
+		RenderText("[SPACE] : Fast Forward l [ESC] : Return To Main Menu", Color(1, 1, 1));
+
+		modelStack.PopMatrix();
+		for (int i = 0; i < credits.size(); ++i)
+		{
+			modelStack.PushMatrix();
+			modelStack.Translate(Application::m_width * 0.5f, (creditsPosition - 16) + (-64 * i), 0);
+			modelStack.Scale(32);
+			modelStack.Translate(-Application::getTextWidth(credits[i]) * 0.5f, 0, 0);
+			RenderText(credits[i], Color(1, 1, 1));
+			modelStack.PopMatrix();
+		}
+
+		glUniform1f(m_parameters[U_ALPHA], screenFade);
+		meshList["QUAD"]->textureID = NULL;
+		modelStack.PushMatrix();
+		modelStack.Scale(5000);
+		RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+		modelStack.PopMatrix();
+		glUniform1f(m_parameters[U_ALPHA], 1);
+
+		glEnable(GL_DEPTH_TEST);
+		return;
+	}
+	else if (GameState == VICTORY || GameState == DEFEAT || GameState == PAUSE)
+	{
+		projection.SetToOrtho(0, Application::m_width, 0, Application::m_height, -80, 80);
+		projectionStack.LoadMatrix(projection);
+		glUniformMatrix4fv(m_parameters[U_PROJECTION], 1, GL_FALSE, &projection.a[0]);
+
+		Render2D();
+		glUniform1f(m_parameters[U_ALPHA], 0.5f);
+		meshList["QUAD"]->textureID = NULL;
+		modelStack.PushMatrix();
+		modelStack.Scale(5000);
+		RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+		modelStack.PopMatrix();
+		glUniform1f(m_parameters[U_ALPHA], 1);
+
+		string BigText;
+		string flavorText;
+		string instructText;
+
+		if (GameState == VICTORY)
+		{
+			BigText = "You Win!";
+			flavorText = "You collected all 4 Keys! You deserve a Cookie!";
+			instructText = "[ESC] to return to Main Menu";
+		}
+		else if (GameState == PAUSE)
+		{
+			BigText = "Paused";
+			flavorText = "[ESC] : Resume";
+			instructText = "[ENTER] : Return To Main Menu";
+		}
+		else
+		{
+			BigText = "You Died!";
+			flavorText = "You failed to collect all 4 Keys! You owe me a Cookie!";
+			instructText = "[ESC] to return to Main Menu";
+		}
+
+		modelStack.PushMatrix();
+		modelStack.Translate(-5, -5, 0);
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f, 0);
+		modelStack.Scale(128);
+		modelStack.Translate(-Application::getTextWidth(BigText) * 0.5f, 0, 0);
+		RenderText(BigText, Color(0, 0, 0));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f, 0);
+		modelStack.Scale(128);
+		modelStack.Translate(-Application::getTextWidth(BigText) * 0.5f, 0, 0);
+		RenderText(BigText, Color(1, 1, 1));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(-3, -3, 0);
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f - 200, 0);
+		modelStack.Scale(32);
+		modelStack.Translate(-Application::getTextWidth(flavorText) * 0.5f, 0, 0);
+		RenderText(flavorText, Color(0, 0, 0));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f - 200, 0);
+		modelStack.Scale(32);
+		modelStack.Translate(-Application::getTextWidth(flavorText) * 0.5f, 0, 0);
+		RenderText(flavorText, Color(1, 1, 1));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(-3, -3, 0);
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f - 200 - 32, 0);
+		modelStack.Scale(32);
+		modelStack.Translate(-Application::getTextWidth(instructText) * 0.5f, 0, 0);
+		RenderText(instructText, Color(0, 0, 0));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.75f - 200 - 32, 0);
+		modelStack.Scale(32);
+		modelStack.Translate(-Application::getTextWidth(instructText) * 0.5f, 0, 0);
+		RenderText(instructText, Color(1, 1, 1));
+		modelStack.PopMatrix();
+
+		glUniform1f(m_parameters[U_ALPHA], screenFade);
+		meshList["QUAD"]->textureID = NULL;
+		modelStack.PushMatrix();
+		modelStack.Scale(5000);
 		RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
 		modelStack.PopMatrix();
 		glUniform1f(m_parameters[U_ALPHA], 1);
@@ -1766,6 +2239,8 @@ void MinScene::Render()
 
 	if (showMap)
 		RenderMap();
+	else if (showStats)
+		RenderStats();
 	else
 	{
 		Render2D();
@@ -1776,12 +2251,74 @@ void MinScene::Render()
 	glUniform1f(m_parameters[U_ALPHA], screenFade);
 	meshList["QUAD"]->textureID = NULL;
 	modelStack.PushMatrix();
-	modelStack.Scale(3000);
+	modelStack.Scale(5000);
 	RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
 	modelStack.PopMatrix();
 	glUniform1f(m_parameters[U_ALPHA], 1);
 
 	glEnable(GL_DEPTH_TEST);
+}
+
+void MinScene::RenderStats()
+{
+	double x = 0;
+	double y = 0;
+	Application::GetCursorPos(&x, &y); y = Application::m_height - y;
+
+	string text;
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.5f, Application::m_height * 0.5f, 0);
+
+	modelStack.PushMatrix();
+	modelStack.Scale(Application::m_width, Application::m_height, 1);
+	meshList["QUAD"]->textureID = NULL;
+	RenderMesh(meshList["QUAD"], false, Color(0, 0, 0));
+
+	modelStack.Scale(1, 1, 1);
+	meshList["QUAD"]->textureID = textureID["STATSMENU"];
+	RenderMesh(meshList["QUAD"], false, Color(0.68f, 0.68f, 0.68f));
+	modelStack.PopMatrix();
+
+	modelStack.PopMatrix();
+
+
+	ostringstream damageText, movespeedText, staminaText, healthText, pointsLeftText;
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.64f, Application::m_height * 0.745f, 0);
+	modelStack.Scale(60);
+	pointsLeftText << player.skillPoint;		//<---- change to points available
+	RenderText(pointsLeftText.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.4f, Application::m_height * 0.59f, 0);
+	modelStack.Scale(30);
+	damageText << "Damage: " << player.damageCounter;
+	RenderText(damageText.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.4f, Application::m_height * 0.43f, 0);
+	modelStack.Scale(26, 28, 1);
+	movespeedText << "Attacks/Second: " << setprecision(3) << player.speedCounter;
+	RenderText(movespeedText.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.4f, Application::m_height * 0.27f, 0);
+	modelStack.Scale(30);
+	staminaText << "Stamina: " << player.MaxSprintTime;
+	RenderText(staminaText.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(Application::m_width * 0.4f, Application::m_height * 0.11f, 0);
+	modelStack.Scale(30);
+	healthText << "Health: " << player.maxHealth;
+	RenderText(healthText.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
 }
 
 void MinScene::RenderEntities_GPass()
@@ -1915,7 +2452,7 @@ void MinScene::RenderEntities()
 {
 	Vector3 dir = (camera->target - camera->position).Normalized();
 
-	unsigned textureIDs[4] = { textureID["PLAYER3"],textureID["PLAYER2"], textureID["PLAYER4"], textureID["PLAYER1"] };
+	unsigned textureIDs[5] = { textureID["PLAYER3"],textureID["PLAYER2"], textureID["PLAYER5"], textureID["PLAYER4"], textureID["PLAYER1"] };
 	Mesh * mesh[6] = {
 		meshList["HEAD"],
 		meshList["BODY"],
@@ -1923,7 +2460,7 @@ void MinScene::RenderEntities()
 		meshList["L_LEG"],
 		meshList["R_ARM"],
 		meshList["R_LEG"] };
-	vector<Mtx44> MMat[4][6]; //Head, Body, Arm, Leg
+	vector<Mtx44> MMat[5][6]; //Head, Body, Arm, Leg
 	vector<Mtx44> BowMMat;
 	vector<Mtx44> RayMMat;
 	vector<Mtx44> WolfMMat[4];
@@ -2069,6 +2606,10 @@ void MinScene::RenderEntities()
 				continue;
 			}
 
+			int index = j + LivingThings[j][i]->getSubID();
+			if (j >= Entity::NPC)
+				index++;
+
 			modelStack.PushMatrix();
 			modelStack.Rotate(LivingThings[j][i]->headOrientation, 0, 1, 0);
 			if (LivingThings[j][i]->vOrientation != 0)
@@ -2077,10 +2618,10 @@ void MinScene::RenderEntities()
 				modelStack.Rotate(-LivingThings[j][i]->vOrientation, 1, 0, 0);
 				modelStack.Translate(0, -1.5f, 0);
 			}
-			MMat[j + LivingThings[j][i]->getSubID()][0].push_back(modelStack.Top());
+			MMat[index][0].push_back(modelStack.Top());
 			modelStack.PopMatrix();
 
-			MMat[j + LivingThings[j][i]->getSubID()][1].push_back(modelStack.Top());
+			MMat[index][1].push_back(modelStack.Top());
 
 			if (j == Entity::SENTRY)
 			{
@@ -2121,12 +2662,12 @@ void MinScene::RenderEntities()
 				modelStack.PushMatrix();
 				modelStack.Rotate(rotation, 1, 0, 0);
 				modelStack.Translate(0, -1.5f, 0);
-				MMat[j + LivingThings[j][i]->getSubID()][2].push_back(modelStack.Top());
+				MMat[index][2].push_back(modelStack.Top());
 				modelStack.PopMatrix();
 
 				modelStack.Rotate(-rotation, 1, 0, 0);
 				modelStack.Translate(0, -1.5f, 0);
-				MMat[j + LivingThings[j][i]->getSubID()][4].push_back(modelStack.Top());
+				MMat[index][4].push_back(modelStack.Top());
 				modelStack.PopMatrix();
 			}
 
@@ -2136,19 +2677,19 @@ void MinScene::RenderEntities()
 			modelStack.PushMatrix();
 			modelStack.Rotate(rotation, 1, 0, 0);
 			modelStack.Translate(0, -0.75f, 0);
-			MMat[j + LivingThings[j][i]->getSubID()][3].push_back(modelStack.Top());
+			MMat[index][3].push_back(modelStack.Top());
 			modelStack.PopMatrix();
 
 			modelStack.Rotate(-rotation, 1, 0, 0);
 			modelStack.Translate(0, -0.75f, 0);
-			MMat[j + LivingThings[j][i]->getSubID()][5].push_back(modelStack.Top());
+			MMat[index][5].push_back(modelStack.Top());
 			modelStack.PopMatrix();
 
 			modelStack.PopMatrix();
 		}
 	}
 
-	for (unsigned j = 0; j < 4; ++j)
+	for (unsigned j = 0; j < 5; ++j)
 	{
 		for (unsigned i = 0; i < 6; ++i)
 		{
@@ -2303,64 +2844,7 @@ void MinScene::RenderScene()
 		modelStack.PopMatrix();
 	}
 
-	unsigned count = blockList.size();
-
-	if (Application::IsKeyPressed('Q'))
-	{
-		vector<Mtx44> MMat;
-
-		modelStack.PushMatrix();
-		modelStack.Translate(player.initialPos.x - player.collision.hitbox.x * 0.5f, player.initialPos.y, player.initialPos.z - player.collision.hitbox.z * 0.5f);
-		modelStack.Scale(player.collision.hitbox);
-		MMat.push_back(modelStack.Top());
-		modelStack.PopMatrix();
-
-		for (unsigned i = 0; i < count; ++i)
-		{
-			if (blockList[i]->type != Block::STAIR)
-			{
-				if (blockList[i]->position.DistSquared(camera->position) < 16 * 16)
-				{
-					modelStack.PushMatrix();
-					blockList[i]->RenderObject(modelStack);
-					MMat.push_back(modelStack.Top());
-					modelStack.PopMatrix();
-				}
-			}
-		}
-
-		vector<Mtx44>RayMMat;
-
-		for (unsigned j = 0; j < NumEntities; ++j)
-		{
-			count = LivingThings[j].size();
-			for (unsigned i = 0; i < count; ++i)
-			{
-				modelStack.PushMatrix();
-				modelStack.Translate(LivingThings[j][i]->position - LivingThings[j][i]->collision.hitbox * 0.5f);
-				modelStack.Translate(LivingThings[j][i]->collision.centre);
-				modelStack.Scale(LivingThings[j][i]->collision.hitbox);
-				MMat.push_back(modelStack.Top());
-				modelStack.PopMatrix();
-
-				if (j == Entity::SENTRY || j == Entity::KNIGHT)
-				{
-					modelStack.PushMatrix();
-					modelStack.Translate(LivingThings[j][i]->position.x, LivingThings[j][i]->position.y + 1.75f, LivingThings[j][i]->position.z);
-					modelStack.Rotate(LivingThings[j][i]->headOrientation + LivingThings[j][i]->hOrientation, 0, 1, 0);
-					modelStack.Rotate(-LivingThings[j][i]->vOrientation, 1, 0, 0);
-					modelStack.Scale(32);
-					RayMMat.push_back(modelStack.Top());
-					modelStack.PopMatrix();
-				}
-			}
-		}
-
-		RenderInstance(meshList["RAY"], RayMMat.size(), &RayMMat[0], false, Color(1,0,0));
-		RenderInstance(meshList["WIREBLOCK"], MMat.size(), &MMat[0], false);
-	}
-
-	count = particleList.size();
+	unsigned count = particleList.size();
 	if (count > 0)
 	{
 		vector<Mtx44> MMat[2];
@@ -2455,6 +2939,48 @@ void MinScene::Render2D()
 	modelStack.PushMatrix();
 	modelStack.Translate(Application::m_width * 0.5f - 100, Application::m_height * 0.5f - 100, 0);
 
+	modelStack.PushMatrix();
+	modelStack.Translate(0, -180, 0);
+
+	//LAZ SLOW MO
+	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
+	modelStack.PushMatrix();
+	modelStack.Translate(-70 + 150 * 0.5f, 0, 0);
+	modelStack.Scale(150, 12, 1);
+	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(-70 + (ZoneBar / MaxZoneTime) * 150 * 0.5f, 0, 0);
+	modelStack.Scale((ZoneBar / MaxZoneTime) * 150, 12, 1);
+	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	meshList["QUAD"]->textureID = textureID["SPRITE_HOURGLASS"];
+	modelStack.PushMatrix();
+	modelStack.Translate(-72, 0, 0);
+	modelStack.Scale(20);
+	RenderMesh(meshList["QUAD"], false);
+	modelStack.PopMatrix();
+
+	if (ZoneBar == MaxZoneTime)
+	{
+		modelStack.PushMatrix();
+		modelStack.Translate(-2, -2, 0);
+		modelStack.Scale(24);
+		modelStack.Translate(-Application::getTextWidth("[L]") * 0.5f, 0, 0);
+		RenderText("[L]", Color(0, 0, 0));
+		modelStack.PopMatrix();
+
+		modelStack.PushMatrix();
+		modelStack.Scale(24);
+		modelStack.Translate(-Application::getTextWidth("[L]") * 0.5f, 0, 0);
+		RenderText("[L]", Color(1, 1, 1));
+		modelStack.PopMatrix();
+	}
+
+	modelStack.PopMatrix();
+
 	meshList["QUAD"]->textureID = textureID["SPRITE_KEY"];
 	modelStack.PushMatrix();
 	modelStack.Translate(-12, -128, 0);
@@ -2465,17 +2991,20 @@ void MinScene::Render2D()
 	RenderMesh(meshList["QUAD"], false);
 	modelStack.PopMatrix();
 
+	ss.str("");
+	ss << "x" << keyCount;
+
 	modelStack.PushMatrix();
 	modelStack.Translate(-2, -2, 0);
 	modelStack.Translate(16, 0, 0);
 	modelStack.Scale(24);
-	RenderText("x0", Color(0,0,0));
+	RenderText(ss.str() , Color(0, 0, 0));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
 	modelStack.Translate(16, 0, 0);
 	modelStack.Scale(24);
-	RenderText("x0", Color(1, 1, 1));
+	RenderText(ss.str(), Color(1, 1, 1));
 	modelStack.PopMatrix();
 
 	modelStack.PopMatrix();
@@ -2574,53 +3103,14 @@ void MinScene::Render2D()
 
 	glUniform1f(m_parameters[U_ALPHA], 1);
 
-	modelStack.PushMatrix();
-	modelStack.Translate(6, 650, 0);
-	modelStack.Scale(24);
-	string text = "Min Build 0.1f";
-	if (player.noClip)
-		text += " noClip";
-	RenderText(text, Color(1, 1, 1));
-
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(6, 615, 0);
-	modelStack.Scale(20);
-	ss.str("");
-	ss << setprecision(30) << "x " << player.position.x;
-	RenderText(ss.str(), Color(1, 0, 0));
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(6, 595, 0);
-	modelStack.Scale(20);
-	ss.str("");
-	if (player.position.y <= Math::EPSILON && -player.position.y <= Math::EPSILON)
-		ss << "y " << 0;
-	else
-		ss << "y " << player.position.y;
-	RenderText(ss.str(), Color(0, 1, 0));
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(6, 575, 0);
-	modelStack.Scale(20);
-	ss.str("");
-	ss << "z " <<  player.position.z;
-	RenderText(ss.str(), Color(0, 0, 1));
-	modelStack.PopMatrix();
-
-	modelStack.PushMatrix();
-	modelStack.Translate(6, 540, 0);
-	modelStack.Scale(20);
-	ss.str("");
-	ss.precision(5);
-	ss << (int)(fps + 0.5f) << " fps (" << (int)(minFPS + 0.5f) << "/" << (int)(peakFPS + 0.5f) << ") (" << blockList.size() << "/" << worldBlocks << " blocks)";
-	RenderText(ss.str(), Color(1, 1, 1));
-	modelStack.PopMatrix();
-
-	glUniform1f(m_parameters[U_ALPHA], 1);
+	//modelStack.PushMatrix();
+	//modelStack.Translate(6, 540, 0);
+	//modelStack.Scale(20);
+	//ss.str("");
+	//ss.precision(5);
+	//ss << (int)(fps + 0.5f) << " fps (" << (int)(minFPS + 0.5f) << "/" << (int)(peakFPS + 0.5f) << ") (" << blockList.size() << "/" << worldBlocks << " blocks)";
+	//RenderText(ss.str(), Color(1, 1, 1));
+	//modelStack.PopMatrix();
 
 	if (!player.noClip)
 	{
@@ -2655,6 +3145,8 @@ void MinScene::Render2D()
 		{
 			modelStack.PushMatrix();
 			modelStack.Translate((Application::m_width - 64 * CInventory::InventorySize) + i * 64, 64, 0);
+
+			modelStack.PushMatrix();
 			if (player.inventory.selectedSlot == player.inventory.slot[i])
 				modelStack.Scale(1.5f);
 			switch (player.inventory.slot[i]->item->itemID)
@@ -2670,7 +3162,26 @@ void MinScene::Render2D()
 			case CItem::FOOD:
 				modelStack.Scale(45);
 				meshList["QUAD"]->textureID = textureID["SPRITE_FOOD"];
-				RenderMesh(meshList["QUAD"], false); break;
+				RenderMesh(meshList["QUAD"], false);  break;
+			}
+			modelStack.PopMatrix();
+			if (!player.inventory.slot[i]->item->unique)
+			{
+				ss.str("");
+				ss << player.inventory.slot[i]->item->count; 
+
+				modelStack.PushMatrix();
+				modelStack.Translate(10, -10, 0);
+				modelStack.Translate(-2, -2, 0);
+				modelStack.Scale(24);
+				RenderText(ss.str(), Color(0, 0, 0));
+				modelStack.PopMatrix();
+
+				modelStack.PushMatrix();
+				modelStack.Translate(10, -10, 0);
+				modelStack.Scale(24);
+				RenderText(ss.str(), Color(1, 1, 1));
+				modelStack.PopMatrix();
 			}
 			modelStack.PopMatrix();
 		}
@@ -2736,89 +3247,101 @@ void MinScene::Render2D()
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
 
 	// LAZ HP BAR
-	color.Set(0.8f, 0, 0);
-	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
-		
-	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
-	modelStack.PushMatrix();
-	modelStack.Translate(40 + 200 * 0.5f, 90, 0);
-	modelStack.Scale(200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
-	modelStack.PopMatrix();
 
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+	meshList["QUAD"]->textureID = textureID["SPRITE_HEART"];
 	modelStack.PushMatrix();
-	modelStack.Translate(40 + (player.health / 100) * 200 * 0.5f, 90, 0);
-	modelStack.Scale((player.health / 100) * 200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
+	modelStack.Translate(30, 72, 0);
+	modelStack.Scale(32);
+	RenderMesh(meshList["QUAD"], false);
 	modelStack.PopMatrix();
 	meshList["QUAD"]->textureID = NULL;
 
+	//LAZ HP Counter
+	ss.str("");
+	ss << (int)player.health;
+	modelStack.PushMatrix();
+	modelStack.Translate(50 - 2, 70 - 2, 0);
+	modelStack.Scale(24);
+	RenderText(ss.str(), Color(0,0,0));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(50, 70, 0);
+	modelStack.Scale(24);
+	RenderText(ss.str(), Color(1, 1, 1));
+	modelStack.PopMatrix();
+
+	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 1);
 	color.Set(1,1,0);
 	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
 
 	//LAZ SPRINT BAR
 	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(40 + 200 * 0.5f, 70, 0);
+	modelStack.Translate(100 + 200 * 0.5f, 70, 0);
 	modelStack.Scale(200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
 	modelStack.PopMatrix();
 
 	modelStack.PushMatrix();
-	modelStack.Translate(40 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f,70, 0);
+	modelStack.Translate(100 + (player.SprintBar/player.MaxSprintTime) * 200 * 0.5f, 70, 0);
 	modelStack.Scale((player.SprintBar / player.MaxSprintTime) * 200, 16, 1);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
 	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
 
 	//LAZ EXP BAR
-	color.Set(0,0.8f,0);
-	glUniform3fv(m_parameters[U_COLOR_SCALE], 1, &color.r);
-	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
 	modelStack.PushMatrix();
-	modelStack.Translate(40 + 200 * 0.5f, 30, 0);
-	modelStack.Scale(200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
+	modelStack.Scale(Application::m_width, 16, 1);
+	modelStack.Translate(0.5f, 0, 0);
+	RenderMesh(meshList["QUAD"], false, Color(0.2f, 0.2f, 0.2f));
 	modelStack.PopMatrix();
 
+	float scale = (player.currentEXP / player.maxEXP) * Application::m_width;
 	modelStack.PushMatrix();
-	modelStack.Translate(40 + 200 * 0.5f,30, 0);
-	modelStack.Scale(200, 16, 1);
+	modelStack.Scale(scale, 16, 1);
+	modelStack.Translate(0.5f, 0, 0);
 	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
-	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
-	
-	
+	modelStack.PopMatrix();	
+
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
+	if (player.skillPoint > 0)
+	{
+		modelStack.PushMatrix();
+		modelStack.Translate(-2, -2, 0);
+		modelStack.Translate(Application::m_width * 0.5f, 12, 0);
+		modelStack.Scale(24);
+		modelStack.Translate(-Application::getTextWidth("[P] : Skill Point Available!") * 0.5f, 0, 0);
+		RenderText("[P] : Skill Point Available!", Color(0, 0, 0));
+		modelStack.PopMatrix();
 
-	//LAZ SLOW MO
-	meshList["QUAD"]->textureID = textureID["SPIRITBAR"];
-	modelStack.PushMatrix();
-	modelStack.Translate(40 + 200 * 0.5f, 50, 0);
-	modelStack.Scale(200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(0.3f, 0.3f, 0.3f));
-	modelStack.PopMatrix();
+		modelStack.PushMatrix();
+		modelStack.Translate(Application::m_width * 0.5f, 12, 0);
+		modelStack.Scale(24);
+		modelStack.Translate(-Application::getTextWidth("[P] : Skill Point Available!") * 0.5f, 0, 0);
+		RenderText("[P] : Skill Point Available!", Color(1, 1, 1));
+		modelStack.PopMatrix();
+	}
 
-	modelStack.PushMatrix();
-	modelStack.Translate(40 + (ZoneBar/MaxZoneTime) * 200 * 0.5f,50, 0);
-	modelStack.Scale((ZoneBar / MaxZoneTime) * 200, 16, 1);
-	RenderMesh(meshList["QUAD"], false, Color(1, 1, 1));
-	modelStack.PopMatrix();
-	
-
-	//LAZ HP Counter
-	modelStack.PushMatrix();
-	modelStack.Translate(5 +  200 * 0.5f, 90 , 0);
-	modelStack.Scale(20);
 	ss.str("");
-	ss.precision(3);
-	ss << player.health << "/100"; 
+	ss << "Level " << player.Lv;
+
+	modelStack.PushMatrix();
+	modelStack.Translate(-3, -3, 0);
+	modelStack.Translate(4, 16, 0);
+	modelStack.Scale(32);
+	RenderText(ss.str(), Color(0, 0, 0));
+	modelStack.PopMatrix();
+
+	modelStack.PushMatrix();
+	modelStack.Translate(4, 16, 0);
+	modelStack.Scale(32);
 	RenderText(ss.str(), Color(1, 1, 1));
 	modelStack.PopMatrix();
 
 	//LAZ SPRINT COUNTER
 	modelStack.PushMatrix();
-	modelStack.Translate(20 + 200 * 0.5f,70, 0);
+	modelStack.Translate(180, 70, 0);
 	modelStack.Scale(20);
 	ss.str("");
 	ss.precision(3);
@@ -2826,55 +3349,17 @@ void MinScene::Render2D()
 	RenderText(ss.str(), Color(1, 1, 1));
 	modelStack.PopMatrix();
 
-	//LAZ SLOWMO COUNTER
-	modelStack.PushMatrix();
-	modelStack.Translate(20 + 200 * 0.5f,50, 0);
-	modelStack.Scale(20);
-	ss.str("");
-	ss.precision(3);
-	ss << ZoneCounter<< "%"; 
-	RenderText(ss.str(), Color(1, 1, 1));
-	modelStack.PopMatrix();
-	
-
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
 
 	//Sprites
-	meshList["QUAD"]->textureID = textureID["SPRITE_HEART"];
-	modelStack.PushMatrix();
-	modelStack.Translate(30 , 90 ,0);
-	modelStack.Scale(20,15,0);
-	RenderMesh(meshList["QUAD"],false);
-	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
-	
-	meshList["QUAD"]->textureID = textureID["SPRITE_HOURGLASS"];
-	modelStack.PushMatrix();
-	modelStack.Translate(30 , 50 ,0);
-	modelStack.Scale(20,15,0);
-	RenderMesh(meshList["QUAD"],false);
-	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
-
 	meshList["QUAD"]->textureID = textureID["SPRITE_SPRINT"];
 	modelStack.PushMatrix();
-	modelStack.Translate(30 , 70 ,0);
-	modelStack.Scale(20,20,0);
+	modelStack.Translate(99 , 70,0);
+	modelStack.Scale(24);
 	RenderMesh(meshList["QUAD"],false);
 	modelStack.PopMatrix();
 	meshList["QUAD"]->textureID = NULL;
 	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
-
-	meshList["QUAD"]->textureID = textureID["SPRITE_EXP"];
-	modelStack.PushMatrix();
-	modelStack.Translate(20, 30 ,0);
-	modelStack.Scale(50,20,0);
-	RenderMesh(meshList["QUAD"],false);
-	modelStack.PopMatrix();
-	meshList["QUAD"]->textureID = NULL;
-	glUniform1i(m_parameters[U_COLOR_SCALE_ENABLED], 0);
-
-	
 	}
 
 	if (!subtitle.empty())
@@ -3520,14 +4005,30 @@ void MinScene::RenderSkybox()
 	meshList["QUAD"]->textureID = NULL;
 }
 
+void MinScene::ExitGame()
+{
+	while (particleList.size() > 0)
+	{
+		delete particleList.back();
+		particleList.pop_back();
+	}
+
+	for (unsigned j = 0; j < NumEntities; ++j)
+	{
+		while (worldLivingThings[j].size() > 0)
+		{
+			delete worldLivingThings[j].back();
+			worldLivingThings[j].pop_back();
+		}
+
+		LivingThings[j].clear();
+	}
+}
+
 void MinScene::Exit()
 {
 	soundExit();
-
-	while (particleList.size() > 0)
-	{
-		particleList.pop_back();
-	}
+	ExitGame();
 
 	for (unsigned z = 0; z < worldZ; ++z)
 	{

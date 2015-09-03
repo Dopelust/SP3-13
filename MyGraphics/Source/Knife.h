@@ -29,5 +29,8 @@ public:
 
 	void Update(double dt);
 	void RenderItem(MS& modelStack);
+
+	float attackTimer;
+	float attackRate;
 };
 

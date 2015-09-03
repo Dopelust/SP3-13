@@ -3,7 +3,7 @@
 
 extern ISoundEngine * engine;
 
-CKnife::CKnife(void) : translation(1, -0.5f, -1.5f)
+CKnife::CKnife(void) : translation(1, -0.5f, -1.5f), attackTimer(0), attackRate(0.5f)
 {
 	currentWeapbobX = 0;
 	currentWeapbobY = 0;
@@ -22,8 +22,7 @@ CKnife::~CKnife(void)
 
 void CKnife::Update(double dt)
 {
-
-	if (Application::IsMousePressed(0) && stabForward == 0)
+	if (Application::IsMousePressed(0) && stabForward == 0 && attackTimer >= attackRate)
 	{
 		char* soundFileLocation[3] = { "Assets/Media/Weapons/Stab1.mp3", "Assets/Media/Weapons/Stab2.mp3" , "Assets/Media/Weapons/Stab3.mp3" };
 		ISound* sound = engine->play2D(soundFileLocation[rand() % 3], false, true);
@@ -34,6 +33,7 @@ void CKnife::Update(double dt)
 		}
 		Stabbing = true;
 		use = true;
+		attackTimer = 0;
 	}
 	if (Application::IsMousePressed(0) && stabForward == -3)
 	{
@@ -86,7 +86,7 @@ void CKnife::Update(double dt)
 		takeoutRot = 180;
 	}
 
-
+	attackTimer += dt;
 }
 
 void CKnife::Bob(double dt)

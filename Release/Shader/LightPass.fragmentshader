@@ -17,6 +17,16 @@ struct Light {
 	float radius;
 };
 
+struct FogParam
+{
+	vec3 color;		// Fog color
+	float start;	// For linear fog
+	float end;		// For linear fog
+	float density;	// For exponential fog
+	int type;		// 0 = linear, 1 = exp, 2 = exp2
+	bool enabled;	// Toggle fog
+};
+
 uniform vec2 screenSize;
 uniform sampler2D shadowMap;
 uniform sampler2D positionMap;
@@ -26,6 +36,7 @@ uniform sampler2D diffuseMap;
 uniform sampler2D specularMap;
 uniform sampler2D emissiveMap;
 uniform Light light;
+uniform FogParam fogParam;
 
 void main()
 {
@@ -38,6 +49,7 @@ void main()
    	vec3 emissive = texture(emissiveMap, texCoord).xyz;
    	float shininess = texture(specularMap, texCoord).w;
 	float visibility = texture(positionMap, texCoord).w;
+	float fogFactor = texture(normalMap, texCoord).w;
 
 	if(light.type == 1) //directional light
 	{
@@ -60,6 +72,8 @@ void main()
 				
 			// Specular : reflective highlight, like a mirror
 			visibility * specular * light.color * light.power * pow(cosAlpha, shininess);
+
+		fragColor.xyz = mix(fragColor.xyz, fogParam.color, fogFactor);
 	}
 	else //point light
 	{
@@ -87,6 +101,8 @@ void main()
 				
 			// Specular : reflective highlight, like a mirror
 			specular * light.color * light.power * pow(cosAlpha, shininess) * attenuationFactor;
+
+		fragColor.xyz *= (1.0 - fogFactor);
 	}
 
 	fragColor.a = 1;

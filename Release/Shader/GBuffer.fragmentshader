@@ -23,6 +23,34 @@ struct Material {
 	float kShininess;
 };
 
+struct FogParam
+{
+	vec3 color;		// Fog color
+	float start;	// For linear fog
+	float end;		// For linear fog
+	float density;	// For exponential fog
+	int type;		// 0 = linear, 1 = exp, 2 = exp2
+	bool enabled;	// Toggle fog
+};
+
+float getFogFactor(FogParam fog, float fogDistance)
+{
+	if(fog.enabled == false)
+		return 0.0;
+
+	float factor = 0.0;
+	if(fog.type == 0) 
+		factor = (fog.end - fogDistance) / (fog.end - fog.start); 
+	else if(fog.type == 1) 
+		factor = exp(- fog.density * fogDistance); 
+	else if(fog.type == 2) 
+		factor = exp(- pow(fog.density * fogDistance, 2.0) ); 
+       
+	factor = 1.0 - clamp(factor, 0.0, 1.0); 
+    
+	return factor;
+}
+
 // Constant values
 const int MAX_TEXTURES = 8;
 
@@ -32,6 +60,7 @@ uniform Material material;
 uniform bool colorTextureEnabled[MAX_TEXTURES];
 uniform sampler2D colorTexture[MAX_TEXTURES];
 uniform sampler2D shadowMap;
+uniform FogParam fogParam;
 
 //without shadow improvement
 float getShadowEffect()
@@ -65,19 +94,26 @@ void main() {
 	float visibility = getShadowEffect();
 		
 	// Color output
-	ambientColor = vec4(materialColor.xyz * material.kAmbient, 1);
 	if(lightEnabled == true)
 	{
+		ambientColor = vec4(materialColor.xyz * material.kAmbient, 1);
 		diffuseColor = vec4(materialColor.xyz * material.kDiffuse, 1);
-		specularColor = vec4(material.kSpecular, material.kShininess);
+		specularColor = vec4(material.kSpecular, material.kShininess); //storing shininess in specular's alpha channel
 		emissiveColor = vec4(materialColor.xyz * material.kEmissive, 1);
 	}
 	else
 	{
+		ambientColor = vec4(materialColor.xyz, 1);
 		diffuseColor = vec4(0, 0, 0, 1);
 		specularColor = vec4(0, 0, 0, 1);
 		emissiveColor = vec4(0, 0, 0, 1);
 	}
-	position_cameraspace = vec4(vertexPosition_cameraspace, visibility);
+	position_cameraspace = vec4(vertexPosition_cameraspace, visibility); //storing shadow visibility in position's alpha channel
 	normal_cameraspace = vec4(normalize(vertexNormal_cameraspace), 1);
+	if(fogParam.enabled)
+	{
+		float fogDistance = abs(vertexPosition_cameraspace.z);
+		float fogFactor = getFogFactor(fogParam, fogDistance);
+		normal_cameraspace.w = fogFactor; //storing fogFactor in normal's alpha channel
+	}
 }

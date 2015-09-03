@@ -1,0 +1,14 @@
+W, A, S, D - Move
+[SPACE] - Jump
+[CTRL] - Sprint
+[SHIFT] - Sneak
+Left/Right Click - Inventory Action
+1, 2, 3/Mouse Scroll - Inventory Select
+[L] - Enter the Zone
+[P] - Statsheet
+[M] - Map
+
+Objective: Retreive the 4 keys (1 in each location on the map)
+
+Tips:
+- Backstabbing enemies results in an instananeous kill.
